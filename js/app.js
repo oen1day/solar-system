@@ -196,7 +196,8 @@
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.minDistance = 3;
+  const defaultMinDistance = 1.5;
+  controls.minDistance = defaultMinDistance;
   controls.maxDistance = 1000;
   controls.rotateSpeed = 0.7;
   controls.zoomSpeed = 1.1;
@@ -1228,6 +1229,20 @@
     return out.set(0, 0, 0);
   }
 
+  // 跟随目标的有效半径（用于限制最近放大距离，避免镜头穿进星球）
+  function getBodyRadius(key) {
+    if (EVENT_BY_KEY[key]) {
+      return EVENT_BY_KEY[key].body === "moon" ? 0.17 : 0.6;
+    }
+    if (key === "moon") return 0.17;
+    const data = BODIES[key];
+    return data ? data.radius : 1;
+  }
+
+  function getFollowMinDistance(key) {
+    return getBodyRadius(key) * 1.2 + 0.3;
+  }
+
   function eventWorldPos(ev, out) {
     out = out || new THREE.Vector3();
     if (ev.body === "moon" && ev._worldAnchor && ev._localOffset) {
@@ -1424,6 +1439,7 @@
     selectedKey = null;
     activeEventKey = null;
     followKey = null;
+    controls.minDistance = defaultMinDistance;
     hideEventCard();
     updateFollowBadge();
     document.querySelectorAll(".nav-item").forEach(function (el) {
@@ -1494,6 +1510,7 @@
 
   document.getElementById("followCancel").addEventListener("click", function () {
     followKey = null;
+    controls.minDistance = defaultMinDistance;
     updateFollowBadge();
   });
 
@@ -1642,7 +1659,11 @@
       const pos = EVENT_BY_KEY[followKey]
         ? eventWorldPos(EVENT_BY_KEY[followKey])
         : bodyWorldPos(followKey);
+      // 动态缩放下限：不能穿进所跟随的星球表面
+      const minD = getFollowMinDistance(followKey);
+      controls.minDistance = minD;
       const off = camera.position.clone().sub(controls.target);
+      if (off.length() < minD) off.setLength(minD);
       controls.target.copy(pos);
       camera.position.copy(pos).add(off);
     }
