@@ -1185,6 +1185,8 @@
   let selectedKey = null;
   let activeEventKey = null;
   let followKey = null;
+  let eventCardPinned = false;
+  let eventCardDocked = false;
   let flying = null;
   const infoPanel = document.getElementById("infoPanel");
   const infoName = document.getElementById("infoName");
@@ -1308,6 +1310,12 @@
     eventYear.textContent = ev.year + " · " + ev.type;
     eventDesc.textContent = ev.desc;
     eventCard.classList.remove("hidden", "collapsed");
+    eventCardPinned = false;
+    eventCardDocked = false;
+    eventCard.classList.add("following");
+    eventCard.classList.remove("pinned");
+    document.getElementById("eventDock").textContent = "⇥";
+    document.getElementById("eventDock").title = "固定到右侧";
     document.getElementById("eventCollapse").textContent = "–";
   }
 
@@ -1486,6 +1494,57 @@
     hideEventCard();
   });
 
+  // PC 端：事件卡片可拖动（手机端保持底部弹出，不启用拖动）
+  let dragState = null;
+  eventCard.addEventListener("pointerdown", function (e) {
+    if (isMobile()) return;
+    if (e.target.closest("button")) return;
+    dragState = {
+      startX: e.clientX,
+      startY: e.clientY,
+      origLeft: eventCard.offsetLeft,
+      origTop: eventCard.offsetTop
+    };
+    eventCard.classList.add("dragging");
+    eventCard.setPointerCapture(e.pointerId);
+  });
+  eventCard.addEventListener("pointermove", function (e) {
+    if (!dragState) return;
+    eventCard.style.left = (dragState.origLeft + e.clientX - dragState.startX) + "px";
+    eventCard.style.top = (dragState.origTop + e.clientY - dragState.startY) + "px";
+    eventCardPinned = true;
+    eventCardDocked = false;
+    eventCard.classList.add("pinned");
+    eventCard.classList.remove("following");
+    document.getElementById("eventDock").textContent = "⇥";
+    document.getElementById("eventDock").title = "固定到右侧";
+  });
+  eventCard.addEventListener("pointerup", function () {
+    dragState = null;
+    eventCard.classList.remove("dragging");
+  });
+  eventCard.addEventListener("pointercancel", function () {
+    dragState = null;
+    eventCard.classList.remove("dragging");
+  });
+
+  // PC 端：一键固定到右侧 / 回到标记位置
+  document.getElementById("eventDock").addEventListener("click", function () {
+    if (eventCardDocked) {
+      eventCardDocked = false;
+      eventCardPinned = false;
+      this.textContent = "⇥";
+      this.title = "固定到右侧";
+    } else {
+      eventCardDocked = true;
+      eventCardPinned = true;
+      eventCard.style.left = Math.max(10, window.innerWidth - 298) + "px";
+      eventCard.style.top = "74px";
+      this.textContent = "⇤";
+      this.title = "回到标记位置";
+    }
+  });
+
   window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -1557,19 +1616,28 @@
 
     // 事件信息卡跟随标记点
     if (activeEventKey) {
-      const ev = EVENT_BY_KEY[activeEventKey];
-      const pos = eventWorldPos(ev);
-      const dir = pos.clone().sub(camera.position).normalize();
-      camera.getWorldDirection(tmpDir);
-      if (dir.dot(tmpDir) > 0.15) {
-        if (!isMobile()) {
-          const v = pos.clone().project(camera);
-          eventCard.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + "px";
-          eventCard.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight) + "px";
-        }
+      if (eventCardPinned) {
+        // 用户已拖动/固定：卡片停在当前位置，不再跟随标记
         eventCard.classList.remove("hidden");
+        eventCard.classList.add("pinned");
+        eventCard.classList.remove("following");
       } else {
-        eventCard.classList.add("hidden");
+        const ev = EVENT_BY_KEY[activeEventKey];
+        const pos = eventWorldPos(ev);
+        const dir = pos.clone().sub(camera.position).normalize();
+        camera.getWorldDirection(tmpDir);
+        eventCard.classList.add("following");
+        eventCard.classList.remove("pinned");
+        if (dir.dot(tmpDir) > 0.15) {
+          if (!isMobile()) {
+            const v = pos.clone().project(camera);
+            eventCard.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + "px";
+            eventCard.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight) + "px";
+          }
+          eventCard.classList.remove("hidden");
+        } else {
+          eventCard.classList.add("hidden");
+        }
       }
     }
 

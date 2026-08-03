@@ -352,8 +352,19 @@ html, body {
   border-radius: 12px;
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
-  transform: translate(-50%, calc(-100% - 24px));
   pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+}
+.event-card.following {
+  transform: translate(-50%, calc(-100% - 24px));
+}
+.event-card.pinned {
+  transform: none;
+  cursor: grab;
+}
+.event-card.dragging {
+  cursor: grabbing;
 }
 .event-card.hidden {
   display: none;
@@ -508,5 +519,9 @@ html, body {
     max-height: 40vh;
     overflow-y: auto;
     transform: none !important;
+    cursor: default;
+  }
+  #eventDock {
+    display: none;
   }
 }
