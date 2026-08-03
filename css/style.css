@@ -440,6 +440,11 @@ html, body {
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+.loading-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: 0.8;
+}
 
 /* ---------- 移动端 ---------- */
 @media (max-width: 768px) {

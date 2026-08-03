@@ -400,19 +400,20 @@
   }
 
   function makeNoise2D(rng) {
-    const grid = {};
-    function gx(x, y) {
-      const k = x + "," + y;
-      if (!(k in grid)) grid[k] = rng();
-      return grid[k];
+    // 快速哈希噪声：不分配对象、不用字符串查找，速度比原版快几十倍
+    function hash(x, y) {
+      let n = x * 374761393 + y * 668265263;
+      n = (n ^ (n >> 13)) * 1274126177;
+      n = n ^ (n >> 16);
+      return (n >>> 0) / 4294967296;
     }
     function noise(x, y) {
       const xi = Math.floor(x), yi = Math.floor(y);
       const xf = x - xi, yf = y - yi;
       const u = xf * xf * (3 - 2 * xf);
       const v = yf * yf * (3 - 2 * yf);
-      const a = gx(xi, yi), b = gx(xi + 1, yi);
-      const c = gx(xi, yi + 1), d = gx(xi + 1, yi + 1);
+      const a = hash(xi, yi), b = hash(xi + 1, yi);
+      const c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
       return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
     }
     function fbm(x, y, oct) {
@@ -443,10 +444,13 @@
   }
 
   const planetTextures = {};
+  const materialByKey = {};
+  const TEX_W = isMobile() ? 512 : 1024;
+  const TEX_H = Math.floor(TEX_W / 2);
 
   function buildTextures() {
     // 水星：灰色坑洼表面
-    planetTextures.mercury = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.mercury = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       ctx.fillStyle = "#9b9ba3";
       ctx.fillRect(0, 0, w, h);
       const img = ctx.getImageData(0, 0, w, h);
@@ -477,7 +481,7 @@
     }, 1101);
 
     // 金星：奶油色云层漩涡
-    planetTextures.venus = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.venus = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       ctx.fillStyle = "#d8b066";
       ctx.fillRect(0, 0, w, h);
       const img = ctx.getImageData(0, 0, w, h);
@@ -499,7 +503,7 @@
     }, 2202);
 
     // 地球：海洋、大陆、云层、极冠
-    planetTextures.earth = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.earth = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
         const lat = Math.abs(y / h - 0.5) * 2;
@@ -542,7 +546,7 @@
     }, 3303);
 
     // 火星：红褐色表面 + 暗色区域 + 极冠
-    planetTextures.mars = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.mars = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
         const lat = Math.abs(y / h - 0.5) * 2;
@@ -572,7 +576,7 @@
     }, 4404);
 
     // 木星：彩色气带 + 湍流 + 大红斑
-    planetTextures.jupiter = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.jupiter = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const palette = ["#c8a878", "#a8875e", "#dcc49a", "#8a6a50", "#e2d2ae", "#b89a70", "#cdb98f"];
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
@@ -607,7 +611,7 @@
     }, 5505);
 
     // 土星：淡金色气带
-    planetTextures.saturn = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.saturn = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const palette = ["#d8c494", "#c8b078", "#e4d4a8", "#bfa468", "#d9c48c"];
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
@@ -632,7 +636,7 @@
     }, 6606);
 
     // 天王星：平滑淡青
-    planetTextures.uranus = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.uranus = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -648,7 +652,7 @@
     }, 7707);
 
     // 海王星：深蓝气带 + 暗斑
-    planetTextures.neptune = makePlanetTexture(1024, 512, function (ctx, w, h, nz) {
+    planetTextures.neptune = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
       const img = ctx.createImageData(w, h);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -669,7 +673,7 @@
     }, 8808);
 
     // 月球：灰色坑洼
-    planetTextures.moon = makePlanetTexture(512, 256, function (ctx, w, h, nz) {
+    planetTextures.moon = makePlanetTexture(Math.floor(TEX_W / 2), Math.floor(TEX_H / 2), function (ctx, w, h, nz) {
       ctx.fillStyle = "#b8b8bc";
       ctx.fillRect(0, 0, w, h);
       const img = ctx.getImageData(0, 0, w, h);
@@ -693,7 +697,6 @@
       }
     }, 9909);
   }
-  buildTextures();
 
   function createOrbitLine(radius, color) {
     const points = [];
@@ -817,6 +820,7 @@
       roughness: 0.85,
       metalness: 0.05
     });
+    materialByKey[key] = pmat;
     const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(data.radius, 48, 48),
       pmat
@@ -860,9 +864,13 @@
 
     // 地球月球
     if (data.hasMoon) {
+      const moonMat = new THREE.MeshStandardMaterial({
+        color: 0xbbbbbb, roughness: 0.95, metalness: 0.02
+      });
+      materialByKey.moon = moonMat;
       const moon = new THREE.Mesh(
         new THREE.SphereGeometry(0.17, 24, 24),
-        new THREE.MeshStandardMaterial({ map: planetTextures.moon, roughness: 0.95, metalness: 0.02 })
+        moonMat
       );
       moon.userData.key = "moon";
       moon.name = "moon";
@@ -1495,4 +1503,18 @@
   renderer.render(scene, camera);
   document.getElementById("loading").classList.add("hide");
   animate();
+
+  // 先让画面立即出现，再在后台生成星球纹理，完成后自动贴上去
+  setTimeout(function () {
+    buildTextures();
+    Object.keys(materialByKey).forEach(function (k) {
+      const mat = materialByKey[k];
+      const tex = planetTextures[k];
+      if (mat && tex) {
+        mat.map = tex;
+        mat.color.set(0xffffff);
+        mat.needsUpdate = true;
+      }
+    });
+  }, 60);
 })();
