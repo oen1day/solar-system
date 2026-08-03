@@ -231,8 +231,8 @@
   scene.add(createStars());
 
   // 光照
-  scene.add(new THREE.AmbientLight(0xffffff, 1.15));
-  const sunLight = new THREE.PointLight(0xfff2cc, 4.2, 600, 1.0);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+  const sunLight = new THREE.PointLight(0xfff2cc, 8.0, 600, 0.8);
   sunLight.position.set(0, 0, 0);
   scene.add(sunLight);
 
@@ -517,6 +517,20 @@
       if (mat) {
         mat.map = planetTextures.earth;
         mat.color.set(0xffffff);
+        mat.needsUpdate = true;
+      }
+    });
+    // 夜间城市灯光：使用离线稀疏化的灯光图（仅保留最亮的城市核心，
+    // 星星点点、人口密集区更亮），暗面显示暖黄色光点
+    loader.load("assets/earth_lights_sparse.png", function (tex) {
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = 8;
+      tex.wrapS = THREE.RepeatWrapping;
+      const mat = materialByKey.earth;
+      if (mat) {
+        mat.emissive = new THREE.Color(0xffc86a);
+        mat.emissiveMap = tex;
+        mat.emissiveIntensity = 1.3;
         mat.needsUpdate = true;
       }
     });
