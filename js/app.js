@@ -1499,12 +1499,23 @@
   eventCard.addEventListener("pointerdown", function (e) {
     if (isMobile()) return;
     if (e.target.closest("button")) return;
+    // 按下瞬间先把卡片固定在当前实际显示位置（包含跟随标记时的偏移），
+    // 避免第一次拖动时因为去掉偏移而“跳”一下
+    const rect = eventCard.getBoundingClientRect();
+    eventCardPinned = true;
+    eventCardDocked = false;
+    eventCard.classList.add("pinned");
+    eventCard.classList.remove("following");
+    eventCard.style.left = rect.left + "px";
+    eventCard.style.top = rect.top + "px";
     dragState = {
       startX: e.clientX,
       startY: e.clientY,
-      origLeft: eventCard.offsetLeft,
-      origTop: eventCard.offsetTop
+      origLeft: rect.left,
+      origTop: rect.top
     };
+    document.getElementById("eventDock").textContent = "⇥";
+    document.getElementById("eventDock").title = "固定到右侧";
     eventCard.classList.add("dragging");
     eventCard.setPointerCapture(e.pointerId);
   });
