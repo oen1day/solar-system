@@ -82,11 +82,116 @@
   <div id="loading" class="loading">
     <div class="spinner"></div>
     <p>正在加载太阳系…</p>
-    <p class="loading-hint">首次打开需要下载资源，请耐心等待；第二次会快很多</p>
+    <p id="loadingStatus" class="loading-hint">正在连接资源服务器…</p>
+    <button id="retryBtn" class="ctrl-btn hidden" style="margin-top:12px;">重新加载</button>
   </div>
 
-  <script src="js/three.min.js"></script>
-  <script src="js/OrbitControls.js"></script>
-  <script src="js/app.js"></script>
+  <script>
+  (function () {
+    // 资源加载器：优先走国内可达性更好的 CDN，失败自动回退到本地文件
+    var threeSources = [
+      "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+      "js/three.min.js"
+    ];
+    var orbitSources = [
+      "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
+      "https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js",
+      "js/OrbitControls.js"
+    ];
+
+    function status(text) {
+      var el = document.getElementById("loadingStatus");
+      if (el) el.textContent = text;
+    }
+    function showRetry() {
+      var btn = document.getElementById("retryBtn");
+      if (btn) btn.classList.remove("hidden");
+    }
+    function load(src, timeoutMs) {
+      return new Promise(function (resolve) {
+        var s = document.createElement("script");
+        var done = false;
+        var timer = setTimeout(function () {
+          if (!done) {
+            done = true;
+            s.onload = s.onerror = null;
+            resolve(false);
+          }
+        }, timeoutMs);
+        s.onload = function () {
+          if (!done) {
+            done = true;
+            clearTimeout(timer);
+            resolve(true);
+          }
+        };
+        s.onerror = function () {
+          if (!done) {
+            done = true;
+            clearTimeout(timer);
+            resolve(false);
+          }
+        };
+        s.src = src;
+        document.head.appendChild(s);
+      });
+    }
+    async function tryChain(list, check, label) {
+      for (var i = 0; i < list.length; i++) {
+        status("正在下载" + label + "…");
+        var ok = await load(list[i], 7000);
+        if (ok && check()) return true;
+      }
+      return false;
+    }
+    function webglOk() {
+      try {
+        var c = document.createElement("canvas");
+        return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl")));
+      } catch (e) {
+        return false;
+      }
+    }
+    document.getElementById("retryBtn").addEventListener("click", function () {
+      location.reload();
+    });
+
+    (async function () {
+      var threeOk = await tryChain(threeSources, function () { return !!window.THREE; }, "3D 引擎");
+      if (!threeOk) {
+        status("3D 引擎下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        showRetry();
+        return;
+      }
+      var orbitOk = await tryChain(orbitSources, function () { return !!window.THREE && !!window.THREE.OrbitControls; }, "视角组件");
+      if (!orbitOk) {
+        status("视角组件下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        showRetry();
+        return;
+      }
+      if (!webglOk()) {
+        status("此设备浏览器不支持 3D 图形（WebGL），无法打开太阳系。请更换 Chrome / Edge 等新版浏览器");
+        showRetry();
+        return;
+      }
+      status("正在初始化太阳系…");
+      var appOk = await load("js/app.js", 20000);
+      if (!appOk) {
+        status("主程序下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        showRetry();
+        return;
+      }
+      // 兜底：若 25 秒后加载层仍未隐藏，提示用户重试
+      setTimeout(function () {
+        var loading = document.getElementById("loading");
+        if (loading && !loading.classList.contains("hide")) {
+          status("加载超时：可能是网络不稳定，请点击下方按钮重试");
+          showRetry();
+        }
+      }, 25000);
+    })();
+  })();
+  </script>
 </body>
 </html>
