@@ -498,6 +498,84 @@
     ctx.putImageData(img, 0, 0);
   }
 
+  // 绘制一个飓风螺旋（白色螺旋臂 + 暗色风眼）
+  function drawHurricane(ctx, cx, cy, r) {
+    // 风眼
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.16, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(30,40,55,0.5)";
+    ctx.fill();
+    // 连续螺旋云带
+    for (let arm = 0; arm < 7; arm++) {
+      const startAng = (arm / 7) * Math.PI * 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 40; i++) {
+        const t = i / 26;
+        const ang = startAng + t * 5.2;
+        const dist = r * (0.24 + t * 1.02);
+        const px = cx + Math.cos(ang) * dist;
+        const py = cy + Math.sin(ang) * dist * 0.72;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = "rgba(255,255,255," + (0.78 - arm * 0.02).toFixed(2) + ")";
+      ctx.lineWidth = r * 0.1 * (1 - arm * 0.03);
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+  }
+
+  // 动态云层纹理：稀疏云团 + 3 个飓风（大西洋/西北太平洋/印度洋）
+  function createEarthCloudTexture() {
+    const W = 1024, H = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    const nz = makeNoise2D(mulberry32(4242));
+    const img = ctx.createImageData(W, H);
+    for (let y = 0; y < H; y++) {
+      const latFrac = Math.abs(y / H - 0.5) * 2;
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const c1 = nz.fbm(x / 160, y / 160, 5);
+        const c2 = nz.fbm(x / 45 + 13, y / 45 + 7, 4);
+        let cloud = c1 * 0.6 + c2 * 0.4 + latFrac * latFrac * 0.12;
+        let a = 0;
+        if (cloud > 0.58) a = Math.min(1, (cloud - 0.58) * 2.6);
+        img.data[i] = 255;
+        img.data[i + 1] = 255;
+        img.data[i + 2] = 255;
+        img.data[i + 3] = Math.floor(a * 235);
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    const storms = [
+      { lat: 18, lon: -62, r: 52 },
+      { lat: 22, lon: 138, r: 46 },
+      { lat: -12, lon: 88, r: 40 }
+    ];
+    storms.forEach(function (st) {
+      const cx = ((st.lon + 180) / 360) * W;
+      const cy = ((90 - st.lat) / 180) * H;
+      drawHurricane(ctx, cx, cy, st.r);
+    });
+    // 整体柔化，让云和风暴更自然
+    const tmp = document.createElement("canvas");
+    tmp.width = W;
+    tmp.height = H;
+    const tctx = tmp.getContext("2d");
+    tctx.filter = "blur(2.5px)";
+    tctx.drawImage(canvas, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(tmp, 0, 0);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = 8;
+    tex.wrapS = THREE.RepeatWrapping;
+    return tex;
+  }
+
   // 地球：优先加载真实卫星影像（NASA Blue Marble 风格）
   function loadEarthTexture() {
     const loader = new THREE.TextureLoader();
@@ -578,6 +656,14 @@
         }
       });
     });
+  }
+
+  // 生成动态云层纹理并贴到云层球上
+  function loadEarthClouds() {
+    const mat = materialByKey.earthCloud;
+    if (!mat) return;
+    mat.map = createEarthCloudTexture();
+    mat.needsUpdate = true;
   }
 
   function buildTextures() {
@@ -978,6 +1064,20 @@
       moonLabel.scale.set(1, 1, 1);
       moon.add(moonLabel);
       labelSprites.moon = moonLabel;
+
+      // 动态云层：比地表略大的半透明球，独立旋转形成流动的云和飓风
+      const cloudMat = new THREE.MeshLambertMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false
+      });
+      materialByKey.earthCloud = cloudMat;
+      const cloudMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(data.radius * 1.03, 48, 48),
+        cloudMat
+      );
+      cloudMesh.userData.key = "earth";
+      group.add(cloudMesh);
+      group.userData.cloud = cloudMesh;
+      pickables.push(cloudMesh);
     }
 
     // 标签
@@ -1625,6 +1725,10 @@
           moon.position.x = BODIES.earth.radius * 2.2 * Math.cos(simDays * 0.18);
           moon.position.z = BODIES.earth.radius * 2.2 * Math.sin(simDays * 0.18);
         }
+        if (inner && inner.userData.cloud) {
+          // 云层比地表转得快一点，形成流动的云和飓风
+          inner.userData.cloud.rotation.y += dt * (data.spinSpeed * 1.35) * (timeScale / 30);
+        }
       });
       // 小行星带自转（整个带缓慢旋转）
       Object.keys(beltGroups).forEach(function (key) {
@@ -1737,5 +1841,6 @@
       }
     });
     loadRealTextures();
+    loadEarthClouds();
   }, 60);
 })();
