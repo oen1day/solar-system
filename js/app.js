@@ -231,8 +231,8 @@
   scene.add(createStars());
 
   // 光照
-  scene.add(new THREE.AmbientLight(0x445566, 0.7));
-  const sunLight = new THREE.PointLight(0xfff2cc, 1.8, 500, 1.6);
+  scene.add(new THREE.AmbientLight(0xffffff, 1.15));
+  const sunLight = new THREE.PointLight(0xfff2cc, 4.2, 600, 1.0);
   sunLight.position.set(0, 0, 0);
   scene.add(sunLight);
 
@@ -453,6 +453,75 @@
   const TEX_W = isMobile() ? 512 : 1024;
   const TEX_H = Math.floor(TEX_W / 2);
 
+  // 程序化生成的地球（备用方案：真实影像加载失败时使用）
+  function paintEarthNoise(ctx, w, h, nz) {
+    const img = ctx.createImageData(w, h);
+    for (let y = 0; y < h; y++) {
+      const lat = Math.abs(y / h - 0.5) * 2;
+      for (let x = 0; x < w; x++) {
+        const cont = nz.fbm(x / 130 + 3.1, y / 130 + 7.7, 6);
+        const detail = nz.fbm(x / 45, y / 45, 4);
+        let r, g, b;
+        const ice = lat > 0.82 ? 1 : (lat > 0.72 ? (cont > 0.6 ? 1 : 0) : 0);
+        if (ice) {
+          const s = 210 + nz.noise(x / 20, y / 20) * 40;
+          r = g = b = s;
+        } else if (cont > 0.55) {
+          const m = detail;
+          if (m > 0.58) {
+            r = 130 + m * 60; g = 150 + m * 60; b = 70 + m * 30;
+          } else {
+            r = 80 + m * 70; g = 120 + m * 70; b = 60 + m * 40;
+          }
+        } else {
+          const depth = 30 + nz.fbm(x / 140, y / 140, 4) * 50;
+          r = 20 + depth * 0.25;
+          g = 60 + depth * 0.55;
+          b = 130 + depth * 0.7;
+        }
+        const cloud = nz.fbm(x / 50 + 9, y / 35, 5);
+        if (cloud > 0.62) {
+          const cw = (cloud - 0.62) * 2.2;
+          r = r + (255 - r) * cw * 0.85;
+          g = g + (255 - g) * cw * 0.85;
+          b = b + (255 - b) * cw * 0.85;
+        }
+        const i = (y * w + x) * 4;
+        img.data[i] = r;
+        img.data[i + 1] = g;
+        img.data[i + 2] = b;
+        img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // 地球：优先加载真实卫星影像（NASA Blue Marble 风格）
+  function loadEarthTexture() {
+    const loader = new THREE.TextureLoader();
+    loader.load("assets/earth_atmos_2048.jpg", function (tex) {
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = 8;
+      tex.wrapS = THREE.RepeatWrapping;
+      planetTextures.earth = tex;
+      const mat = materialByKey.earth;
+      if (mat) {
+        mat.map = tex;
+        mat.color.set(0xffffff);
+        mat.needsUpdate = true;
+      }
+    }, undefined, function () {
+      // 图片加载失败：退回程序化生成
+      planetTextures.earth = makePlanetTexture(TEX_W, TEX_H, paintEarthNoise, 3303);
+      const mat = materialByKey.earth;
+      if (mat) {
+        mat.map = planetTextures.earth;
+        mat.color.set(0xffffff);
+        mat.needsUpdate = true;
+      }
+    });
+  }
+
   function buildTextures() {
     // 水星：灰色坑洼表面
     planetTextures.mercury = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
@@ -507,48 +576,8 @@
       ctx.putImageData(img, 0, 0);
     }, 2202);
 
-    // 地球：海洋、大陆、云层、极冠
-    planetTextures.earth = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
-      const img = ctx.createImageData(w, h);
-      for (let y = 0; y < h; y++) {
-        const lat = Math.abs(y / h - 0.5) * 2;
-        for (let x = 0; x < w; x++) {
-          const cont = nz.fbm(x / 130 + 3.1, y / 130 + 7.7, 6);
-          const detail = nz.fbm(x / 45, y / 45, 4);
-          let r, g, b;
-          const ice = lat > 0.82 ? 1 : (lat > 0.72 ? (cont > 0.6 ? 1 : 0) : 0);
-          if (ice) {
-            const s = 210 + nz.noise(x / 20, y / 20) * 40;
-            r = g = b = s;
-          } else if (cont > 0.55) {
-            const m = detail;
-            if (m > 0.58) {
-              r = 130 + m * 60; g = 150 + m * 60; b = 70 + m * 30;
-            } else {
-              r = 80 + m * 70; g = 120 + m * 70; b = 60 + m * 40;
-            }
-          } else {
-            const depth = 30 + nz.fbm(x / 140, y / 140, 4) * 50;
-            r = 20 + depth * 0.25;
-            g = 60 + depth * 0.55;
-            b = 130 + depth * 0.7;
-          }
-          const cloud = nz.fbm(x / 50 + 9, y / 35, 5);
-          if (cloud > 0.62) {
-            const cw = (cloud - 0.62) * 2.2;
-            r = r + (255 - r) * cw * 0.85;
-            g = g + (255 - g) * cw * 0.85;
-            b = b + (255 - b) * cw * 0.85;
-          }
-          const i = (y * w + x) * 4;
-          img.data[i] = r;
-          img.data[i + 1] = g;
-          img.data[i + 2] = b;
-          img.data[i + 3] = 255;
-        }
-      }
-      ctx.putImageData(img, 0, 0);
-    }, 3303);
+    // 地球：使用真实卫星影像（异步加载，失败时自动退回程序化生成）
+    loadEarthTexture();
 
     // 火星：红褐色表面 + 暗色区域 + 极冠
     planetTextures.mars = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
