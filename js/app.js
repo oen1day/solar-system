@@ -1242,12 +1242,10 @@
     const dir = new THREE.Vector3(0.5, 0.45, 1).normalize();
     const startCam = camera.position.clone();
     const startTarget = controls.target.clone();
-    const endCam = target.clone().add(dir.multiplyScalar(dist));
-    const endTarget = target.clone();
     const duration = 1300;
     const t0 = performance.now();
     controls.enabled = false;
-    flying = { startCam, startTarget, endCam, endTarget, t0, duration, key };
+    flying = { startCam, startTarget, dir: dir.clone(), dist: dist, t0, duration, key };
   }
 
   function easeInOutCubic(t) {
@@ -1279,7 +1277,7 @@
     });
     showEventCard(ev);
     if (fly) flyTo(key);
-    followKey = ev.body === "moon" ? "moon" : key;
+    followKey = key;
     updateFollowBadge();
     if (window.innerWidth <= 768) closeSidebar();
   }
@@ -1607,8 +1605,18 @@
       const el = performance.now() - flying.t0;
       const t = Math.min(1, el / flying.duration);
       const e = easeInOutCubic(t);
-      camera.position.lerpVectors(flying.startCam, flying.endCam, e);
-      controls.target.lerpVectors(flying.startTarget, flying.endTarget, e);
+      if (flying.key) {
+        // 飞行途中实时追踪目标当前位置：到达时镜头已与跟随状态完全重合，无闪回
+        const cur = EVENT_BY_KEY[flying.key]
+          ? eventWorldPos(EVENT_BY_KEY[flying.key])
+          : bodyWorldPos(flying.key);
+        const endCam = cur.clone().add(flying.dir.clone().multiplyScalar(flying.dist));
+        camera.position.lerpVectors(flying.startCam, endCam, e);
+        controls.target.lerpVectors(flying.startTarget, cur, e);
+      } else {
+        camera.position.lerpVectors(flying.startCam, flying.endCam, e);
+        controls.target.lerpVectors(flying.startTarget, flying.endTarget, e);
+      }
       if (t >= 1) {
         flying = null;
         controls.enabled = true;
