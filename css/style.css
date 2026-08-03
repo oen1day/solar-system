@@ -388,8 +388,27 @@ html, body {
 /* ---------- 导航子菜单 ---------- */
 .nav-arrow {
   margin-left: auto;
-  font-size: 11px;
-  color: var(--text-dim);
+  margin-right: 6px;
+  width: 17%;
+  min-width: 44px;
+  max-width: 52px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(110, 168, 255, 0.35);
+  user-select: none;
+}
+.nav-arrow:hover,
+.nav-arrow:active {
+  background: rgba(110, 168, 255, 0.3);
 }
 .nav-sub {
   display: none;
