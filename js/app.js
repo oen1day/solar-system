@@ -1048,10 +1048,12 @@
       if (ev.body === "moon") {
         const lat = ev.lat * Math.PI / 180;
         const lon = ev.lon * Math.PI / 180;
+        // 与月球贴图的真实经纬度对应：
+        // 经度 0° 在 +X 方向，东经向 -Z 方向延伸，北纬朝 +Y
         const normal = new THREE.Vector3(
-          Math.cos(lat) * Math.sin(lon),
+          Math.cos(lat) * Math.cos(lon),
           Math.sin(lat),
-          Math.cos(lat) * Math.cos(lon)
+          -Math.cos(lat) * Math.sin(lon)
         ).normalize();
         group = makeEventPin(ev.color);
         group.position.copy(normal.clone().multiplyScalar(0.17 + 0.015));
@@ -1067,6 +1069,8 @@
         scene.add(group);
       }
       ev._group = group;
+      // 默认隐藏：只有选中对应事件时才显示标记
+      group.visible = false;
       eventMarkers[ev.key] = group;
       group.traverse(function (o) {
         if (o.isMesh) {
@@ -1267,6 +1271,7 @@
     if (!ev) return;
     activeEventKey = key;
     selectedKey = null;
+    setActiveEventMarker(key);
     document.querySelectorAll(".nav-item").forEach(function (el) {
       el.classList.toggle("active", el.dataset.event === key);
     });
@@ -1307,8 +1312,16 @@
   }
 
   function hideEventCard() {
+    setActiveEventMarker(null);
     eventCard.classList.add("hidden");
     activeEventKey = null;
+  }
+
+  // 只显示当前选中事件的标记，其余隐藏
+  function setActiveEventMarker(key) {
+    Object.keys(eventMarkers).forEach(function (k) {
+      eventMarkers[k].visible = (k === key);
+    });
   }
 
   function updateFollowBadge() {
