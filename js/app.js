@@ -181,12 +181,13 @@
    *  基础场景
    * ========================================================= */
   const container = document.getElementById("app");
+  function isMobile() { return window.innerWidth < 768; }
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 3000);
   camera.position.set(28, 34, 76);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.shadowMap.enabled = false;
@@ -202,9 +203,10 @@
 
   // 背景星空
   function createStars() {
-    const positions = new Float32Array(6000 * 3);
-    const colors = new Float32Array(6000 * 3);
-    for (let i = 0; i < 6000; i++) {
+    const starCount = isMobile() ? 3000 : 6000;
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
       const r = 900 + Math.random() * 700;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
@@ -783,7 +785,7 @@
 
     // 小行星带：特殊处理
     if (key === "asteroidBelt") {
-      const beltMesh = createBelt(20.5, 25.5, 1800, 0x77777d, [0.07, 0.16], 0.8);
+      const beltMesh = createBelt(20.5, 25.5, isMobile() ? 1000 : 1800, 0x77777d, [0.07, 0.16], 0.8);
       beltMesh.userData.key = "asteroidBelt";
       group.add(beltMesh);
       group.userData.isBelt = true;
@@ -796,7 +798,7 @@
     }
 
     if (key === "kuiperBelt") {
-      const beltMesh = createBelt(70, 88, 2000, 0x7f879f, [0.08, 0.2], 1.5);
+      const beltMesh = createBelt(70, 88, isMobile() ? 1200 : 2000, 0x7f879f, [0.08, 0.2], 1.5);
       beltMesh.userData.key = "kuiperBelt";
       group.add(beltMesh);
       group.userData.isBelt = true;
@@ -1361,6 +1363,8 @@
     sidebar.classList.add("collapsed");
     mask.classList.remove("show");
   }
+  // 手机端默认收起侧边菜单，避免遮挡 3D 画面
+  if (isMobile()) closeSidebar();
 
   document.getElementById("infoClose").addEventListener("click", function () {
     infoPanel.classList.add("hidden");
@@ -1389,6 +1393,7 @@
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    if (isMobile()) closeSidebar();
   });
 
   /* =========================================================
@@ -1460,9 +1465,11 @@
       const dir = pos.clone().sub(camera.position).normalize();
       camera.getWorldDirection(tmpDir);
       if (dir.dot(tmpDir) > 0.15) {
-        const v = pos.clone().project(camera);
-        eventCard.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + "px";
-        eventCard.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight) + "px";
+        if (!isMobile()) {
+          const v = pos.clone().project(camera);
+          eventCard.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + "px";
+          eventCard.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight) + "px";
+        }
         eventCard.classList.remove("hidden");
       } else {
         eventCard.classList.add("hidden");

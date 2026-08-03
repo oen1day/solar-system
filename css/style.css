@@ -443,12 +443,43 @@ html, body {
 
 /* ---------- 移动端 ---------- */
 @media (max-width: 768px) {
-  #topbar { flex-wrap: wrap; }
+  #topbar { flex-wrap: wrap; padding: 8px 10px; gap: 8px; }
   .brand { display: none; }
-  .controls { width: 100%; justify-content: flex-end; }
-  .speed-label { order: -1; width: 100%; justify-content: center; }
-  #sidebar { top: 96px; width: 220px; }
+  #menuToggle { order: 0; }
+  #pauseBtn { order: 1; margin-left: auto; }
+  .controls { width: 100%; order: 2; justify-content: flex-start; gap: 8px; }
+  .speed-label { order: -1; width: 100%; justify-content: center; font-size: 12px; }
+  .speed-label input { width: 62%; max-width: 230px; }
+  .check { font-size: 12px; }
+  .time-display { display: none; }
+  #sidebar { top: 96px; width: 240px; }
   #sidebarMask { inset: 96px 0 0 0; }
   #hint { display: none; }
-  #infoPanel { top: 112px; right: 10px; width: calc(100vw - 20px); }
+  #infoPanel {
+    top: auto;
+    bottom: 12px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+  #infoPanel .info-facts {
+    grid-template-columns: 1fr;
+  }
+  .fact {
+    padding: 6px 9px;
+  }
+  #followBadge { top: 104px; }
+  .event-card {
+    left: 10px !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: 12px;
+    width: calc(100vw - 20px) !important;
+    max-width: none;
+    max-height: 40vh;
+    overflow-y: auto;
+    transform: none !important;
+  }
 }
