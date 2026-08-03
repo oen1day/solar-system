@@ -356,9 +356,6 @@ html, body {
   cursor: grab;
   user-select: none;
 }
-.event-card.following {
-  transform: translate(-50%, calc(-100% - 24px));
-}
 .event-card.pinned {
   transform: none;
   cursor: grab;

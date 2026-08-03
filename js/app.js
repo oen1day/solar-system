@@ -1642,8 +1642,16 @@
         if (dir.dot(tmpDir) > 0.15) {
           if (!isMobile()) {
             const v = pos.clone().project(camera);
-            eventCard.style.left = ((v.x * 0.5 + 0.5) * window.innerWidth) + "px";
-            eventCard.style.top = ((-v.y * 0.5 + 0.5) * window.innerHeight) + "px";
+            // 直接用坐标计算“标记上方居中”的位置，不依赖 CSS 变形，
+            // 保证拖动前后位置一致、不会跳位
+            const cardW = eventCard.offsetWidth;
+            const cardH = eventCard.offsetHeight;
+            let cx = (v.x * 0.5 + 0.5) * window.innerWidth;
+            let cy = (-v.y * 0.5 + 0.5) * window.innerHeight;
+            cx = Math.max(8, Math.min(cx - cardW / 2, window.innerWidth - cardW - 8));
+            cy = Math.max(8, Math.min(cy - cardH - 24, window.innerHeight - cardH - 8));
+            eventCard.style.left = cx + "px";
+            eventCard.style.top = cy + "px";
           }
           eventCard.classList.remove("hidden");
         } else {

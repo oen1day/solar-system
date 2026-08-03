@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>动态太阳系 · Solar System</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20260804">
 </head>
 <body>
   <div id="app"></div>
@@ -177,7 +177,7 @@
         return;
       }
       status("正在初始化太阳系…");
-      var appOk = await load("js/app.js", 20000);
+      var appOk = await load("js/app.js?v=20260804", 20000);
       if (!appOk) {
         status("主程序下载失败：网络可能无法访问资源服务器，请检查网络后重试");
         showRetry();
