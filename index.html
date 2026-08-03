@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>动态太阳系 · Solar System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- 顶部控制条 -->
+  <header id="topbar">
+    <button id="menuToggle" class="icon-btn" title="展开/收起菜单">☰</button>
+    <div class="brand">☀ 动态太阳系</div>
+    <div class="controls">
+      <button id="pauseBtn" class="ctrl-btn" title="播放/暂停">⏸</button>
+      <label class="speed-label">
+        速度
+        <input type="range" id="speedSlider" min="1" max="500" value="30">
+        <span id="speedValue">30x</span>
+      </label>
+      <label class="check"><input type="checkbox" id="orbitToggle" checked> 轨道</label>
+      <label class="check"><input type="checkbox" id="labelToggle" checked> 标签</label>
+      <label class="check"><input type="checkbox" id="beltToggle" checked> 小行星带</label>
+      <span id="timeDisplay" class="time-display">运行 0 天</span>
+    </div>
+  </header>
+
+  <!-- 侧边菜单 -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <span>太阳系导航</span>
+      <button id="sidebarClose" class="icon-btn" title="收起菜单">«</button>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="搜索星球…">
+    </div>
+    <nav id="bodyList"></nav>
+    <div class="sidebar-footer">
+      <button id="resetView" class="ctrl-btn full">⟲ 重置视角</button>
+    </div>
+  </aside>
+  <div id="sidebarMask"></div>
+
+  <!-- 星体信息面板 -->
+  <div id="infoPanel" class="hidden">
+    <button id="infoClose" class="icon-btn" title="关闭">✕</button>
+    <button id="infoCollapse" class="icon-btn" title="收起/展开">–</button>
+    <h2 id="infoName"></h2>
+    <p id="infoType" class="info-type"></p>
+    <div class="info-facts" id="infoFacts"></div>
+    <p id="infoDesc" class="info-desc"></p>
+  </div>
+
+  <!-- 跟随提示 -->
+  <div id="followBadge" class="follow-badge hidden">
+    <span>跟随中 · <b id="followName"></b></span>
+    <button id="followCancel" class="icon-btn mini" title="取消跟随">✕</button>
+  </div>
+
+  <!-- 事件信息卡 -->
+  <div id="eventCard" class="event-card hidden">
+    <div class="event-head">
+      <span id="eventTitle"></span>
+      <span class="event-btns">
+        <button id="eventCollapse" class="icon-btn mini" title="收起/展开">–</button>
+        <button id="eventClose" class="icon-btn mini" title="关闭">✕</button>
+      </span>
+    </div>
+    <div class="event-body">
+      <div class="event-year" id="eventYear"></div>
+      <p id="eventDesc"></p>
+    </div>
+  </div>
+
+  <!-- 操作提示 -->
+  <div id="hint">
+    左键拖拽旋转 · 滚轮缩放 · 右键平移 · 点击星球或侧边菜单定位
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>正在加载太阳系…</p>
+  </div>
+
+  <script src="js/three.min.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
