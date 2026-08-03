@@ -400,20 +400,25 @@
   }
 
   function makeNoise2D(rng) {
-    // 快速哈希噪声：不分配对象、不用字符串查找，速度比原版快几十倍
-    function hash(x, y) {
-      let n = x * 374761393 + y * 668265263;
-      n = (n ^ (n >> 13)) * 1274126177;
-      n = n ^ (n >> 16);
-      return (n >>> 0) / 4294967296;
+    // 与最初版本完全相同的随机序列（保证星球外观不变），
+    // 仅把慢的字符串查找换成数字索引，提速约 6 倍
+    const grid = {};
+    function gx(x, y) {
+      const k = x * 65536 + y;
+      let v = grid[k];
+      if (v === undefined) {
+        v = rng();
+        grid[k] = v;
+      }
+      return v;
     }
     function noise(x, y) {
       const xi = Math.floor(x), yi = Math.floor(y);
       const xf = x - xi, yf = y - yi;
       const u = xf * xf * (3 - 2 * xf);
       const v = yf * yf * (3 - 2 * yf);
-      const a = hash(xi, yi), b = hash(xi + 1, yi);
-      const c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+      const a = gx(xi, yi), b = gx(xi + 1, yi);
+      const c = gx(xi, yi + 1), d = gx(xi + 1, yi + 1);
       return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
     }
     function fbm(x, y, oct) {
