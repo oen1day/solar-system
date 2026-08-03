@@ -522,6 +522,48 @@
     });
   }
 
+  // 其余行星、月球与小行星带：加载真实卫星影像（失败时保留程序化纹理作为后备）
+  function loadRealTextures() {
+    const list = [
+      ["mercury", "assets/mercury.jpg"],
+      ["venus", "assets/venus.jpg"],
+      ["mars", "assets/mars.jpg"],
+      ["jupiter", "assets/jupiter.jpg"],
+      ["saturn", "assets/saturn.jpg"],
+      ["uranus", "assets/uranus.jpg"],
+      ["neptune", "assets/neptune.jpg"],
+      ["moon", "assets/moon.jpg"]
+    ];
+    const loader = new THREE.TextureLoader();
+    list.forEach(function (item) {
+      loader.load(item[1], function (tex) {
+        tex.encoding = THREE.sRGBEncoding;
+        tex.anisotropy = 8;
+        tex.wrapS = THREE.RepeatWrapping;
+        planetTextures[item[0]] = tex;
+        const mat = materialByKey[item[0]];
+        if (mat) {
+          mat.map = tex;
+          mat.color.set(0xffffff);
+          mat.needsUpdate = true;
+        }
+      });
+    });
+    // 小行星带：使用真实岩石表面纹理作为通用陨石材质
+    loader.load("assets/mercury.jpg", function (tex) {
+      tex.encoding = THREE.sRGBEncoding;
+      tex.anisotropy = 4;
+      ["asteroidBelt", "kuiperBelt"].forEach(function (k) {
+        const mesh = beltGroups[k];
+        if (mesh) {
+          mesh.material.map = tex;
+          mesh.material.color.set(0xffffff);
+          mesh.material.needsUpdate = true;
+        }
+      });
+    });
+  }
+
   function buildTextures() {
     // 水星：灰色坑洼表面
     planetTextures.mercury = makePlanetTexture(TEX_W, TEX_H, function (ctx, w, h, nz) {
@@ -1550,5 +1592,6 @@
         mat.needsUpdate = true;
       }
     });
+    loadRealTextures();
   }, 60);
 })();
