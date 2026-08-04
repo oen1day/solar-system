@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  /* 动态太阳系 · Interactive Solar System
+   * 基于 Three.js 的 3D 太阳系交互网站
+   * 在线演示：https://oen1day.github.io/solar-system/
+   * 开源协议：MIT（贴图版权与署名见 README.md） */
+
   /* =========================================================
    *  数据定义
    * ========================================================= */
