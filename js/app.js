@@ -502,28 +502,32 @@
   function makeStormAlpha(nz, st, W, H) {
     const cx = ((st.lon + 180) / 360) * W;
     const cy = ((90 - st.lat) / 180) * H;
+    function ss(a, b, v) {
+      const t = Math.max(0, Math.min(1, (v - a) / (b - a)));
+      return t * t * (3 - 2 * t);
+    }
     return function (x, y) {
       const dx = (x - cx) / (W / 360);
       const dy = (y - cy) / (H / 180);
       const r = Math.sqrt(dx * dx + dy * dy) / st.rDeg;
-      if (r > 1.3) return 0;
+      if (r > 1.35) return 0;
       const angle = Math.atan2(dy, dx);
       const shear = r * 2.6;
       const a2 = angle + shear;
       const n1 = nz.fbm(Math.cos(a2) * r * 4.5 + st.sx, Math.sin(a2) * r * 4.5 + st.sy, 4);
       const n2 = nz.fbm(Math.cos(a2) * r * 10 + st.sx * 2, Math.sin(a2) * r * 10 + st.sy * 2, 3);
       const band = n1 * 0.65 + n2 * 0.35;
-      // 眼墙：以 r≈0.26 为中心的高斯亮环，向内外都平滑衰减（风眼保持清晰）
-      const dWall = (r - 0.26) / 0.1;
-      const sEye = Math.max(0, Math.min(1, (r - 0.16) / 0.08));
-      const wall = 0.85 * Math.exp(-dWall * dWall) * sEye * sEye * (3 - 2 * sEye);
-      // 螺旋云带：从眼墙外平滑接力，外缘逐渐淡出，和普通云层自然衔接
-      const bi = Math.max(0, Math.min(1, (r - 0.3) / 0.25));
-      const bo = Math.max(0, Math.min(1, (1.35 - r) / 0.45));
-      const bs = Math.max(0, Math.min(1, (band - 0.38) / 0.3));
-      const bandA = bs * bs * (3 - 2 * bs) *
-        bi * bi * (3 - 2 * bi) * bo * bo * (3 - 2 * bo);
-      return Math.max(wall, bandA);
+      // 眼墙：半径随角度起伏、亮度由噪声调制，不再是完美圆环
+      const wallN = nz.fbm(Math.cos(angle) * 2 + st.sx * 5, Math.sin(angle) * 2 + st.sy * 5, 3);
+      const rw = 0.24 + (wallN - 0.5) * 0.14;
+      const sEye = ss(0.13, 0.2, r);
+      const wall = 0.55 * Math.exp(-Math.pow((r - rw) / 0.12, 2)) * sEye * (0.45 + 0.8 * wallN);
+      // 螺旋云带：从眼墙附近就开始，与眼墙叠加融合，外缘平滑淡出
+      const bi = ss(0.22, 0.5, r);
+      const bo = ss(1.35, 0.9, r);
+      const bs = ss(0.34, 0.68, band);
+      const bandA = bs * bi * bo;
+      return Math.min(1, wall + bandA * (0.35 + 0.65 * wallN));
     };
   }
 
