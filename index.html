@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <!-- 动态太阳系 · Interactive Solar System | https://oen1day.github.io/solar-system/ -->
+  <!-- 动态太阳系模型 · Interactive Solar System | https://oen1day.github.io/solar-system/ -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>动态太阳系 · Solar System</title>
-  <link rel="stylesheet" href="css/style.css?v=20260810">
+  <title>动态太阳系模型 · Interactive Solar System</title>
+  <link rel="stylesheet" href="css/style.css?v=20260811">
 </head>
 <body>
   <div id="app"></div>
@@ -13,41 +13,47 @@
   <!-- 顶部控制条 -->
   <header id="topbar">
     <button id="menuToggle" class="icon-btn" title="展开/收起菜单">☰</button>
-    <div class="brand">☀ 动态太阳系</div>
+    <div class="brand">☀ <span data-i18n="brand">动态太阳系</span></div>
     <div class="controls">
-      <button id="pauseBtn" class="ctrl-btn" title="播放/暂停">⏸</button>
+      <button id="pauseBtn" class="ctrl-btn" data-i18n-title="pauseTitle" title="播放/暂停">⏸</button>
       <label class="speed-label">
-        速度
+        <span data-i18n="speed">速度</span>
         <input type="range" id="speedSlider" min="1" max="500" value="30">
         <span id="speedValue">30x</span>
       </label>
-      <label class="check"><input type="checkbox" id="orbitToggle" checked> 轨道</label>
-      <label class="check"><input type="checkbox" id="labelToggle" checked> 标签</label>
-      <label class="check"><input type="checkbox" id="beltToggle" checked> 小行星带</label>
+      <label class="check"><input type="checkbox" id="orbitToggle" checked> <span data-i18n="orbit">轨道</span></label>
+      <label class="check"><input type="checkbox" id="labelToggle" checked> <span data-i18n="labels">标签</span></label>
+      <label class="check"><input type="checkbox" id="beltToggle" checked> <span data-i18n="belt">小行星带</span></label>
       <span id="timeDisplay" class="time-display">运行 0 天</span>
+      <select id="langSelect" class="lang-select" title="语言 / Language / Язык">
+        <option value="zh">简体中文</option>
+        <option value="zhTW">繁體中文</option>
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+      </select>
     </div>
   </header>
 
   <!-- 侧边菜单 -->
   <aside id="sidebar">
     <div class="sidebar-header">
-      <span>太阳系导航</span>
-      <button id="sidebarClose" class="icon-btn" title="收起菜单">«</button>
+      <span data-i18n="sidebarTitle">太阳系导航</span>
+      <button id="sidebarClose" class="icon-btn" data-i18n-title="sidebarCloseTitle" title="收起菜单">«</button>
     </div>
     <div class="sidebar-search">
-      <input type="text" id="searchInput" placeholder="搜索星球…">
+      <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="搜索星球…">
     </div>
     <nav id="bodyList"></nav>
     <div class="sidebar-footer">
-      <button id="resetView" class="ctrl-btn full">⟲ 重置视角</button>
+      <button id="resetView" class="ctrl-btn full">⟲ <span data-i18n="resetView">重置视角</span></button>
     </div>
   </aside>
   <div id="sidebarMask"></div>
 
   <!-- 星体信息面板 -->
   <div id="infoPanel" class="hidden">
-    <button id="infoClose" class="icon-btn" title="关闭">✕</button>
-    <button id="infoCollapse" class="icon-btn" title="收起/展开">–</button>
+    <button id="infoClose" class="icon-btn" data-i18n-title="infoCloseTitle" title="关闭">✕</button>
+    <button id="infoCollapse" class="icon-btn" data-i18n-title="infoCollapseTitle" title="收起/展开">–</button>
     <h2 id="infoName"></h2>
     <p id="infoType" class="info-type"></p>
     <div class="info-facts" id="infoFacts"></div>
@@ -56,8 +62,8 @@
 
   <!-- 跟随提示 -->
   <div id="followBadge" class="follow-badge hidden">
-    <span>跟随中 · <b id="followName"></b></span>
-    <button id="followCancel" class="icon-btn mini" title="取消跟随">✕</button>
+    <span><span data-i18n="followPrefix">跟随中 · </span><b id="followName"></b></span>
+    <button id="followCancel" class="icon-btn mini" data-i18n-title="followCancelTitle" title="取消跟随">✕</button>
   </div>
 
   <!-- 事件信息卡 -->
@@ -65,9 +71,9 @@
     <div class="event-head">
       <span id="eventTitle"></span>
       <span class="event-btns">
-        <button id="eventDock" class="icon-btn mini" title="固定到右侧">⇥</button>
-        <button id="eventCollapse" class="icon-btn mini" title="收起/展开">–</button>
-        <button id="eventClose" class="icon-btn mini" title="关闭">✕</button>
+        <button id="eventDock" class="icon-btn mini" data-i18n-title="eventDockTitle" title="固定到右侧">⇥</button>
+        <button id="eventCollapse" class="icon-btn mini" data-i18n-title="eventCollapseTitle" title="收起/展开">–</button>
+        <button id="eventClose" class="icon-btn mini" data-i18n-title="eventCloseTitle" title="关闭">✕</button>
       </span>
     </div>
     <div class="event-body">
@@ -77,23 +83,91 @@
   </div>
 
   <!-- 操作提示 -->
-  <div id="hint">
+  <div id="hint" data-i18n="hint">
     左键拖拽旋转 · 滚轮缩放 · 右键平移 · 点击星球或侧边菜单定位
   </div>
 
   <div id="attribution">
-    贴图来源：<a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a>（<a href="https://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="noopener">CC BY 4.0</a>）· NASA
+    <span data-i18n="attributionLabel">贴图来源：</span><a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a>（<a id="ccLink" href="https://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="noopener">CC BY 4.0</a>）· NASA
   </div>
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
-    <p>正在加载太阳系…</p>
-    <p id="loadingStatus" class="loading-hint">正在连接资源服务器…</p>
-    <button id="retryBtn" class="ctrl-btn hidden" style="margin-top:12px;">重新加载</button>
+    <p data-i18n="loadingTitle">正在加载太阳系…</p>
+    <p id="loadingStatus" class="loading-hint" data-i18n="loadingConnect">正在连接资源服务器…</p>
+    <button id="retryBtn" class="ctrl-btn hidden" data-i18n="retry" style="margin-top:12px;">重新加载</button>
   </div>
 
   <script>
   (function () {
+    // 加载器多语言：根据已保存的选择或浏览器语言显示加载提示
+    var lang = "zh";
+    try {
+      var savedLang = localStorage.getItem("solarLang");
+      if (savedLang) {
+        lang = savedLang;
+      } else {
+        var navLang = (navigator.language || "zh").toLowerCase();
+        if (navLang.indexOf("zh") === 0) lang = (navLang.indexOf("tw") >= 0 || navLang.indexOf("hk") >= 0) ? "zhTW" : "zh";
+        else if (navLang.indexOf("ru") === 0) lang = "ru";
+        else lang = "en";
+      }
+    } catch (e) {}
+    var I18N = {
+      zh: {
+        title: "动态太阳系模型 · Interactive Solar System",
+        loadingTitle: "正在加载太阳系…", loadingConnect: "正在连接资源服务器…", retry: "重新加载",
+        downloading: "正在下载{label}…", engine: "3D 引擎", controls: "视角组件",
+        engineFail: "3D 引擎下载失败：网络可能无法访问资源服务器，请检查网络后重试",
+        controlsFail: "视角组件下载失败：网络可能无法访问资源服务器，请检查网络后重试",
+        webglFail: "此设备浏览器不支持 3D 图形（WebGL），无法打开太阳系。请更换 Chrome / Edge 等新版浏览器",
+        init: "正在初始化太阳系…",
+        appFail: "主程序下载失败：网络可能无法访问资源服务器，请检查网络后重试",
+        timeout: "加载超时：可能是网络不稳定，请点击下方按钮重试"
+      },
+      zhTW: {
+        title: "動態太陽系模型 · Interactive Solar System",
+        loadingTitle: "正在載入太陽系…", loadingConnect: "正在連線資源伺服器…", retry: "重新載入",
+        downloading: "正在下載{label}…", engine: "3D 引擎", controls: "視角元件",
+        engineFail: "3D 引擎下載失敗：網路可能無法存取資源伺服器，請檢查網路後重試",
+        controlsFail: "視角元件下載失敗：網路可能無法存取資源伺服器，請檢查網路後重試",
+        webglFail: "此裝置瀏覽器不支援 3D 圖形（WebGL），無法開啟太陽系。請更換 Chrome / Edge 等新版瀏覽器",
+        init: "正在初始化太陽系…",
+        appFail: "主程式下載失敗：網路可能無法存取資源伺服器，請檢查網路後重試",
+        timeout: "載入逾時：可能是網路不穩定，請點擊下方按鈕重試"
+      },
+      en: {
+        title: "动态太阳系模型 · Interactive Solar System",
+        loadingTitle: "Loading the solar system…", loadingConnect: "Connecting to resource servers…", retry: "Reload",
+        downloading: "Downloading {label}…", engine: "3D engine", controls: "view controls",
+        engineFail: "Failed to load the 3D engine. The network may be unreachable — please check and retry.",
+        controlsFail: "Failed to load the view controls. The network may be unreachable — please check and retry.",
+        webglFail: "This browser does not support 3D graphics (WebGL). Please use a recent Chrome or Edge browser.",
+        init: "Initializing the solar system…",
+        appFail: "Failed to load the main program. The network may be unreachable — please check and retry.",
+        timeout: "Loading timed out. The network may be unstable — please click the button below to retry."
+      },
+      ru: {
+        title: "动态太阳系模型 · Interactive Solar System",
+        loadingTitle: "Загрузка Солнечной системы…", loadingConnect: "Подключение к серверам ресурсов…", retry: "Перезагрузить",
+        downloading: "Загрузка: {label}…", engine: "3D-движок", controls: "компонент управления",
+        engineFail: "Не удалось загрузить 3D-движок. Возможно, сеть недоступна — проверьте и повторите.",
+        controlsFail: "Не удалось загрузить компонент управления. Возможно, сеть недоступна — проверьте и повторите.",
+        webglFail: "Браузер не поддерживает 3D-графику (WebGL). Используйте современный Chrome или Edge.",
+        init: "Инициализация Солнечной системы…",
+        appFail: "Не удалось загрузить основную программу. Возможно, сеть недоступна — проверьте и повторите.",
+        timeout: "Превышено время загрузки. Возможно, сеть нестабильна — нажмите кнопку ниже, чтобы повторить."
+      }
+    };
+    var I = I18N[lang] || I18N.zh;
+    document.title = I.title;
+    var loadTitleEl = document.querySelector('[data-i18n="loadingTitle"]');
+    if (loadTitleEl) loadTitleEl.textContent = I.loadingTitle;
+    var loadStatusEl = document.getElementById("loadingStatus");
+    if (loadStatusEl) loadStatusEl.textContent = I.loadingConnect;
+    var retryEl = document.getElementById("retryBtn");
+    if (retryEl) retryEl.textContent = I.retry;
+
     // 资源加载器：优先走国内可达性更好的 CDN，失败自动回退到本地文件
     var threeSources = [
       "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
@@ -145,7 +219,7 @@
     }
     async function tryChain(list, check, label) {
       for (var i = 0; i < list.length; i++) {
-        status("正在下载" + label + "…");
+        status(I.downloading.replace("{label}", label));
         var ok = await load(list[i], 7000);
         if (ok && check()) return true;
       }
@@ -164,27 +238,27 @@
     });
 
     (async function () {
-      var threeOk = await tryChain(threeSources, function () { return !!window.THREE; }, "3D 引擎");
+      var threeOk = await tryChain(threeSources, function () { return !!window.THREE; }, I.engine);
       if (!threeOk) {
-        status("3D 引擎下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        status(I.engineFail);
         showRetry();
         return;
       }
-      var orbitOk = await tryChain(orbitSources, function () { return !!window.THREE && !!window.THREE.OrbitControls; }, "视角组件");
+      var orbitOk = await tryChain(orbitSources, function () { return !!window.THREE && !!window.THREE.OrbitControls; }, I.controls);
       if (!orbitOk) {
-        status("视角组件下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        status(I.controlsFail);
         showRetry();
         return;
       }
       if (!webglOk()) {
-        status("此设备浏览器不支持 3D 图形（WebGL），无法打开太阳系。请更换 Chrome / Edge 等新版浏览器");
+        status(I.webglFail);
         showRetry();
         return;
       }
-      status("正在初始化太阳系…");
-      var appOk = await load("js/app.js?v=20260810", 20000);
+      status(I.init);
+      var appOk = await load("js/app.js?v=20260811", 20000);
       if (!appOk) {
-        status("主程序下载失败：网络可能无法访问资源服务器，请检查网络后重试");
+        status(I.appFail);
         showRetry();
         return;
       }
@@ -192,7 +266,7 @@
       setTimeout(function () {
         var loading = document.getElementById("loading");
         if (loading && !loading.classList.contains("hide")) {
-          status("加载超时：可能是网络不稳定，请点击下方按钮重试");
+          status(I.timeout);
           showRetry();
         }
       }, 25000);

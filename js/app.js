@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  /* 动态太阳系 · Interactive Solar System
+  /* 动态太阳系模型 · Interactive Solar System
    * 基于 Three.js 的 3D 太阳系交互网站
    * 在线演示：https://oen1day.github.io/solar-system/
    * 开源协议：MIT（贴图版权与署名见 README.md） */
@@ -187,6 +187,325 @@
   ];
   const EVENT_BY_KEY = {};
   EVENTS.forEach(function (ev) { EVENT_BY_KEY[ev.key] = ev; });
+
+  /* =========================================================
+   *  多语言（简体中文 / 繁體中文 / English / Русский）
+   * ========================================================= */
+  const LANGS = ["zh", "zhTW", "en", "ru"];
+  const ZH_TW_MAP = {
+    "万":"萬","亿":"億","约":"約","颗":"顆","数":"數","与":"與","轨":"軌","间":"間","时":"時","温":"溫",
+    "带":"帶","个":"個","锁":"鎖","谷":"穀","载":"載","发":"發","际":"際","号":"號","罗":"羅","陆":"陸",
+    "软":"軟","着":"著","后":"後","里":"裡","车":"車","飞":"飛","视":"視","标":"標","签":"籤","单":"單",
+    "击":"擊","键":"鍵","缩":"縮","转":"轉","滚":"滾","轮":"輪","侧":"側","边":"邊","还":"還","远":"遠",
+    "独":"獨","为":"為","传":"傳","递":"遞","携":"攜","层":"層","浓":"濃","云":"雲","应":"應","铅":"鉛",
+    "盖":"蓋","卫":"衛","铁":"鐵","锈":"鏽","红":"紅","奥":"奧","门":"門","热":"熱","选":"選","残":"殘",
+    "质":"質","属":"屬","类":"類","志":"誌","级":"級","风":"風","环":"環","无":"無","宽":"寬","轴":"軸",
+    "蓝":"藍","绿":"綠","乡":"鄉","异":"異","历":"歷","测":"測","续":"續","贵":"貴","据":"據","离":"離",
+    "镀":"鍍","问":"問","进":"進","这":"這","经":"經","纬":"緯","对":"對","浏":"瀏","览":"覽","寻":"尋",
+    "让":"讓","变":"變","阳":"陽","屿":"嶼","优":"優","众":"眾","参":"參","台":"臺","两":"兩","却":"卻",
+    "冯":"馮","静":"靜","样":"樣","岁":"歲","纪":"紀","头":"頭","尘":"塵","龙":"龍"
+  };
+  function zhTW(s) {
+    let out = s;
+    Object.keys(ZH_TW_MAP).forEach(function (k) {
+      out = out.split(k).join(ZH_TW_MAP[k]);
+    });
+    return out;
+  }
+  const UI_T = {
+    title: { zh: "动态太阳系模型 · Interactive Solar System", zhTW: "動態太陽系模型 · Interactive Solar System", en: "动态太阳系模型 · Interactive Solar System", ru: "动态太阳系模型 · Interactive Solar System" },
+    brand: { zh: "动态太阳系模型", zhTW: "動態太陽系模型", en: "Solar System Model", ru: "Модель Солнечной системы" },
+    menuToggleTitle: { zh: "展开/收起菜单", zhTW: "展開/收起選單", en: "Open/close menu", ru: "Открыть/закрыть меню" },
+    pauseTitle: { zh: "播放/暂停", zhTW: "播放/暫停", en: "Play/Pause", ru: "Играть/Пауза" },
+    speed: { zh: "速度", zhTW: "速度", en: "Speed", ru: "Скорость" },
+    orbit: { zh: "轨道", zhTW: "軌道", en: "Orbits", ru: "Орбиты" },
+    labels: { zh: "标签", zhTW: "標籤", en: "Labels", ru: "Метки" },
+    belt: { zh: "小行星带", zhTW: "小行星帶", en: "Asteroid belt", ru: "Пояс астероидов" },
+    timeRunning: { zh: "运行 {n} 天", zhTW: "運行 {n} 天", en: "Day {n}", ru: "День {n}" },
+    sidebarTitle: { zh: "太阳系导航", zhTW: "太陽系導航", en: "Solar System Navigation", ru: "Навигация по Солнечной системе" },
+    sidebarCloseTitle: { zh: "收起菜单", zhTW: "收起選單", en: "Close menu", ru: "Закрыть меню" },
+    searchPlaceholder: { zh: "搜索星球…", zhTW: "搜尋星球…", en: "Search planets…", ru: "Поиск планет…" },
+    resetView: { zh: "重置视角", zhTW: "重置視角", en: "Reset view", ru: "Сбросить вид" },
+    infoCloseTitle: { zh: "关闭", zhTW: "關閉", en: "Close", ru: "Закрыть" },
+    infoCollapseTitle: { zh: "收起/展开", zhTW: "收起/展開", en: "Collapse/expand", ru: "Свернуть/развернуть" },
+    followPrefix: { zh: "跟随中 · ", zhTW: "跟隨中 · ", en: "Following · ", ru: "Слежение · " },
+    followCancelTitle: { zh: "取消跟随", zhTW: "取消跟隨", en: "Stop following", ru: "Остановить слежение" },
+    eventDockTitle: { zh: "固定到右侧", zhTW: "固定到右側", en: "Dock to the right", ru: "Закрепить справа" },
+    eventBackTitle: { zh: "回到标记位置", zhTW: "回到標記位置", en: "Return to marker", ru: "Вернуться к маркеру" },
+    eventCollapseTitle: { zh: "收起/展开", zhTW: "收起/展開", en: "Collapse/expand", ru: "Свернуть/развернуть" },
+    eventCloseTitle: { zh: "关闭", zhTW: "關閉", en: "Close", ru: "Закрыть" },
+    hint: { zh: "左键拖拽旋转 · 滚轮缩放 · 右键平移 · 点击星球或侧边菜单定位", zhTW: "左鍵拖曳旋轉 · 滾輪縮放 · 右鍵平移 · 點擊星球或側邊選單定位", en: "Drag to rotate · Scroll to zoom · Right-drag to pan · Click a planet or menu item to focus", ru: "Перетаскивание — вращение · Колесо — масштаб · Правая кнопка — панорама · Клик по планете или пункту меню — фокус" },
+    loadingTitle: { zh: "正在加载太阳系…", zhTW: "正在載入太陽系…", en: "Loading the solar system…", ru: "Загрузка Солнечной системы…" },
+    loadingConnect: { zh: "正在连接资源服务器…", zhTW: "正在連線資源伺服器…", en: "Connecting to resource servers…", ru: "Подключение к серверам ресурсов…" },
+    retry: { zh: "重新加载", zhTW: "重新載入", en: "Reload", ru: "Перезагрузить" },
+    attributionLabel: { zh: "贴图来源：", zhTW: "貼圖來源：", en: "Textures: ", ru: "Текстуры: " },
+    navStar: { zh: "恒星", zhTW: "恆星", en: "Stars", ru: "Звёзды" },
+    navPlanets: { zh: "行星", zhTW: "行星", en: "Planets", ru: "Планеты" },
+    navSatellites: { zh: "卫星", zhTW: "衛星", en: "Moons", ru: "Спутники" },
+    navAsteroidBelt: { zh: "小行星带", zhTW: "小行星帶", en: "Asteroid Belt", ru: "Пояс астероидов" },
+    navMilestones: { zh: "人类里程碑", zhTW: "人類里程碑", en: "Milestones", ru: "Вехи" },
+    navKuiperBelt: { zh: "柯伊伯带", zhTW: "柯伊伯帶", en: "Kuiper Belt", ru: "Пояс Койпера" },
+    lblDiameter: { zh: "直径", zhTW: "直徑", en: "Diameter", ru: "Диаметр" },
+    lblDistSun: { zh: "距太阳", zhTW: "距太陽", en: "Distance from the Sun", ru: "Расстояние от Солнца" },
+    lblOrbit: { zh: "公转周期", zhTW: "公轉週期", en: "Orbital period", ru: "Период обращения" },
+    lblRotation: { zh: "自转周期", zhTW: "自轉週期", en: "Rotation period", ru: "Период вращения" },
+    lblTemp: { zh: "表面温度", zhTW: "表面溫度", en: "Surface temperature", ru: "Температура поверхности" },
+    lblPosition: { zh: "位置", zhTW: "位置", en: "Position", ru: "Положение" },
+    lblRange: { zh: "范围", zhTW: "範圍", en: "Range", ru: "Диапазон" },
+    lblCount: { zh: "已知数量", zhTW: "已知數量", en: "Number of objects", ru: "Известное количество" },
+    lblLargest: { zh: "最大天体", zhTW: "最大天體", en: "Largest object", ru: "Крупнейший объект" },
+    lblComposition: { zh: "组成", zhTW: "組成", en: "Composition", ru: "Состав" },
+    lblMember: { zh: "著名成员", zhTW: "著名成員", en: "Famous member", ru: "Известный объект" },
+    lblType: { zh: "类型", zhTW: "類型", en: "Type", ru: "Тип" },
+    lblMassShare: { zh: "质量占比", zhTW: "質量佔比", en: "Mass share", ru: "Доля массы" },
+    lblDistEarth: { zh: "距地球", zhTW: "距地球", en: "Distance from Earth", ru: "Расстояние от Земли" }
+  };
+  const FACT_LABEL_KEYS = {
+    "直径": "lblDiameter", "距太阳": "lblDistSun", "公转周期": "lblOrbit", "自转周期": "lblRotation",
+    "表面温度": "lblTemp", "位置": "lblPosition", "范围": "lblRange", "已知数量": "lblCount",
+    "最大天体": "lblLargest", "组成": "lblComposition", "著名成员": "lblMember", "类型": "lblType",
+    "质量占比": "lblMassShare", "距地球": "lblDistEarth"
+  };
+  const BODY_T = {
+    sun: {
+      name: { zh: "太阳", en: "Sun", ru: "Солнце" },
+      type: { zh: "恒星", en: "Star", ru: "Звезда" },
+      desc: { zh: "太阳系的中心，一颗正值壮年的黄矮星，内部每秒将约 6 亿吨氢转化为氦，为整个太阳系提供光和热。", en: "The center of the solar system — a middle-aged yellow dwarf. Every second it fuses about 600 million tons of hydrogen into helium, providing light and heat for the entire solar system.", ru: "Центр Солнечной системы — жёлтый карлик среднего возраста. Каждую секунду он превращает около 600 миллионов тонн водорода в гелий, давая свет и тепло всей Солнечной системе." }
+    },
+    mercury: {
+      name: { zh: "水星", en: "Mercury", ru: "Меркурий" },
+      type: { zh: "类地行星", en: "Terrestrial planet", ru: "Планета земной группы" },
+      desc: { zh: "离太阳最近、也是最小的行星。几乎没有大气层保护，昼夜温差超过 600℃，表面布满陨石坑，像一颗巨大的铁核。", en: "The closest and smallest planet to the Sun. With almost no atmosphere, its day-night temperature difference exceeds 600 °C. Its cratered surface hides a huge iron core.", ru: "Ближайшая к Солнцу и самая маленькая планета. Почти без атмосферы, перепад температур между днём и ночью превышает 600 °C. Поверхность покрыта кратерами и скрывает огромное железное ядро." }
+    },
+    venus: {
+      name: { zh: "金星", en: "Venus", ru: "Венера" },
+      type: { zh: "类地行星", en: "Terrestrial planet", ru: "Планета земной группы" },
+      desc: { zh: "太阳系最热的行星。浓密的二氧化碳大气和硫酸云层造成失控温室效应，表面温度足以熔化铅，且自转方向与公转相反。", en: "The hottest planet in the solar system. A dense carbon-dioxide atmosphere and sulfuric-acid clouds create a runaway greenhouse effect; its surface is hot enough to melt lead, and it rotates opposite to its orbit.", ru: "Самая горячая планета Солнечной системы. Плотная углекислотная атмосфера и сернокислые облака вызывают неконтролируемый парниковый эффект; температура поверхности достаточна для плавления свинца, а вращение обратное орбитальному." }
+    },
+    earth: {
+      name: { zh: "地球", en: "Earth", ru: "Земля" },
+      type: { zh: "类地行星", en: "Terrestrial planet", ru: "Планета земной группы" },
+      desc: { zh: "目前已知唯一存在生命的星球。71% 的表面被液态海洋覆盖，大气中 21% 是氧气，拥有唯一的天然卫星——月球。", en: "The only known planet with life. 71% of its surface is covered by liquid oceans, its atmosphere is 21% oxygen, and it has one natural satellite — the Moon.", ru: "Единственная известная планета с жизнью. 71% поверхности покрыто океанами, в атмосфере 21% кислорода, есть единственный естественный спутник — Луна." }
+    },
+    mars: {
+      name: { zh: "火星", en: "Mars", ru: "Марс" },
+      type: { zh: "类地行星", en: "Terrestrial planet", ru: "Планета земной группы" },
+      desc: { zh: "被称为红色星球，表面氧化铁让它呈现锈红色。拥有太阳系最高的火山——奥林帕斯山（高约 21 km），是人类未来移民的热门候选。", en: "Known as the Red Planet, its rust-colored surface comes from iron oxide. It has the tallest volcano in the solar system — Olympus Mons (about 21 km high) — and is a popular candidate for future human colonization.", ru: "Известна как Красная планета из-за оксидов железа на поверхности. Здесь находится самый высокий вулкан Солнечной системы — Олимп (около 21 км), популярный кандидат для будущей колонизации." }
+    },
+    asteroidBelt: {
+      name: { zh: "小行星带", en: "Asteroid Belt", ru: "Пояс астероидов" },
+      type: { zh: "小行星带", en: "Asteroid belt", ru: "Пояс астероидов" },
+      desc: { zh: "太阳系形成早期未能聚集成行星的物质残留，由岩石和金属组成。最大的谷神星直径约 940 公里，已被归类为矮行星。", en: "Remains of material that failed to form a planet in the early solar system, composed of rock and metal. The largest object, Ceres (about 940 km across), is classified as a dwarf planet.", ru: "Остатки вещества, не собравшегося в планету на заре Солнечной системы; состоят из камня и металла. Крупнейший объект — Церера (около 940 км) — классифицируется как карликовая планета." }
+    },
+    jupiter: {
+      name: { zh: "木星", en: "Jupiter", ru: "Юпитер" },
+      type: { zh: "气态巨行星", en: "Gas giant", ru: "Газовый гигант" },
+      desc: { zh: "太阳系最大的行星，体积可容纳 1300 多个地球。标志性的大红斑是一场已持续数百年的超级风暴，直径超过地球。", en: "The largest planet in the solar system, big enough to hold more than 1,300 Earths. Its iconic Great Red Spot is a superstorm that has raged for centuries and is wider than Earth.", ru: "Крупнейшая планета Солнечной системы: внутри неё поместилось бы более 1300 Земель. Знаменитое Большое красное пятно — супершторм, бушующий веками и по диаметру превышающий Землю." }
+    },
+    saturn: {
+      name: { zh: "土星", en: "Saturn", ru: "Сатурн" },
+      type: { zh: "气态巨行星", en: "Gas giant", ru: "Газовый гигант" },
+      desc: { zh: "以壮观的光环闻名，光环由无数冰块和岩石碎屑组成，宽达数十万公里却只有几十米厚。土星平均密度比水还低。", en: "Famous for its spectacular rings, made of countless chunks of ice and rock — hundreds of thousands of kilometers wide yet only a few tens of meters thick. Saturn's average density is lower than water's.", ru: "Знаменит великолепными кольцами из бесчисленных льдин и каменных обломков — сотни тысяч километров в ширину и всего десятки метров в толщину. Средняя плотность Сатурна меньше плотности воды." }
+    },
+    uranus: {
+      name: { zh: "天王星", en: "Uranus", ru: "Уран" },
+      type: { zh: "冰巨行星", en: "Ice giant", ru: "Ледяной гигант" },
+      desc: { zh: "一颗与众不同的冰巨行星，自转轴几乎“平躺”在轨道面上，像是侧着身子绕太阳滚动。大气中的甲烷让它呈现淡蓝绿色。", en: "An unusual ice giant whose axis is almost \"lying down\" on its orbital plane, rolling around the Sun on its side. Methane in its atmosphere gives it a pale blue-green color.", ru: "Необычный ледяной гигант: ось вращения почти «лежит» в плоскости орбиты, и планета катится вокруг Солнца на боку. Метан в атмосфере придаёт ей бледно-голубовато-зелёный цвет." }
+    },
+    neptune: {
+      name: { zh: "海王星", en: "Neptune", ru: "Нептун" },
+      type: { zh: "冰巨行星", en: "Ice giant", ru: "Ледяной гигант" },
+      desc: { zh: "距离太阳最远的行星，深蓝色的外观来自大气中的甲烷。拥有太阳系最狂暴的风，速度可达每小时 2,100 公里。", en: "The farthest planet from the Sun; its deep blue color comes from methane in its atmosphere. It has the most violent winds in the solar system, reaching 2,100 km/h.", ru: "Самая далёкая планета от Солнца; глубокий синий цвет обусловлен метаном в атмосфере. Здесь самые сильные ветры Солнечной системы — до 2100 км/ч." }
+    },
+    kuiperBelt: {
+      name: { zh: "柯伊伯带", en: "Kuiper Belt", ru: "Пояс Койпера" },
+      type: { zh: "冰质天体带", en: "Icy bodies belt", ru: "Пояс ледяных тел" },
+      desc: { zh: "海王星轨道之外环绕太阳的冰质天体带，是短周期彗星的故乡。曾经的第九大行星冥王星就位于这片区域。", en: "A ring of icy bodies beyond Neptune's orbit, home to short-period comets. Pluto, once the ninth planet, lies in this region.", ru: "Кольцо ледяных тел за орбитой Нептуна, родина короткопериодических комет. В этой области находится Плутон, некогда девятая планета." }
+    }
+  };
+  const MOON_T = {
+    name: { zh: "月球", en: "Moon", ru: "Луна" },
+    type: { zh: "天然卫星", en: "Natural satellite", ru: "Естественный спутник" },
+    desc: { zh: "地球唯一的天然卫星，也是人类唯一亲身踏足过的地外天体。月球被地球潮汐锁定，永远以同一面朝向地球，正面与背面的地貌差异巨大。", en: "Earth's only natural satellite and the only extraterrestrial body humans have set foot on. Tidally locked to Earth, it always shows the same face; its near and far sides differ greatly.", ru: "Единственный естественный спутник Земли и единственное внеземное тело, на которое ступал человек. Из-за приливного захвата всегда обращена к Земле одной стороной; видимая и обратная стороны сильно различаются." }
+  };
+  const EVENT_T = {
+    apollo11: {
+      name: { zh: "阿波罗11号 · 人类首次登月", en: "Apollo 11 · First Human Moon Landing", ru: "«Аполлон-11» · первая высадка человека на Луну" },
+      short: { zh: "阿波罗11号登月", en: "Apollo 11 Moon landing", ru: "Высадка «Аполлона-11»" },
+      year: { zh: "1969年7月20日", en: "July 20, 1969", ru: "20 июля 1969 г." },
+      type: { zh: "载人登月", en: "Manned landing", ru: "Пилотируемая посадка" },
+      desc: { zh: "阿姆斯特朗与奥尔德林乘坐“鹰”号登月舱降落在静海基地，成为最先踏上月球的人类。两人在月面活动约 2.5 小时，带回 21.5 公斤月岩样本，阿姆斯特朗说出了那句名言：“这是个人的一小步，却是人类的一大步。”", en: "Armstrong and Aldrin landed the Eagle lunar module at the Sea of Tranquility, becoming the first humans on the Moon. They spent about 2.5 hours on the surface and brought back 21.5 kg of lunar samples. Armstrong's famous words: \"That's one small step for man, one giant leap for mankind.\"", ru: "Армстронг и Олдрин посадили лунный модуль «Орёл» в Море Спокойствия, став первыми людьми на Луне. Они провели на поверхности около 2,5 часов и привезли 21,5 кг лунных образцов. Знаменитая фраза Армстронга: «Маленький шаг для человека, но гигантский скачок для человечества»." }
+    },
+    change4: {
+      name: { zh: "嫦娥四号 · 月背软着陆", en: "Chang'e 4 · Far-side Landing", ru: "«Чанъэ-4» · посадка на обратной стороне" },
+      short: { zh: "嫦娥四号月背着陆", en: "Chang'e 4 far-side landing", ru: "Посадка «Чанъэ-4»" },
+      year: { zh: "2019年1月3日", en: "January 3, 2019", ru: "3 января 2019 г." },
+      type: { zh: "无人探测器", en: "Robotic probe", ru: "Автоматический зонд" },
+      desc: { zh: "嫦娥四号在月球背面冯·卡门撞击坑成功软着陆，是人类历史上首个在月球背面着陆的探测器。玉兔二号月球车随后展开巡视，持续传回珍贵科学数据。", en: "Chang'e 4 made a soft landing in the Von Kármán crater on the far side of the Moon, becoming the first spacecraft ever to land there. Its rover Yutu-2 then explored the area, returning valuable scientific data.", ru: "«Чанъэ-4» совершила мягкую посадку в кратере Фон Кармана на обратной стороне Луны — первой в истории. Луноход «Юйту-2» исследовал окрестности и передал ценные научные данные." }
+    },
+    voyager1: {
+      name: { zh: "旅行者1号", en: "Voyager 1", ru: "«Вояджер-1»" },
+      short: { zh: "旅行者1号", en: "Voyager 1", ru: "«Вояджер-1»" },
+      year: { zh: "1977年发射 · 2012年进入星际空间", en: "Launched 1977 · Entered interstellar space 2012", ru: "Запуск 1977 · В межзвёздное пространство 2012" },
+      type: { zh: "深空探测器", en: "Deep-space probe", ru: "Межпланетный зонд" },
+      desc: { zh: "1977年9月发射，先后飞掠木星和土星，2012年成为首个进入星际空间的人造物体。它目前仍是距离地球最远的人造探测器，携带的镀金唱片向宇宙传递着人类文明的问候。", en: "Launched in September 1977, Voyager 1 flew past Jupiter and Saturn, and in 2012 became the first human-made object to enter interstellar space. It remains the most distant human-made object and carries a golden record with greetings from humanity.", ru: "Запущен в сентябре 1977 года, пролетел мимо Юпитера и Сатурна, а в 2012 году первым из созданных человеком объектов вышел в межзвёздное пространство. Остаётся самым далёким рукотворным объектом; несёт золотую пластинку с посланием человечества." }
+    },
+    voyager2: {
+      name: { zh: "旅行者2号", en: "Voyager 2", ru: "«Вояджер-2»" },
+      short: { zh: "旅行者2号", en: "Voyager 2", ru: "«Вояджер-2»" },
+      year: { zh: "1977年发射 · 2018年进入星际空间", en: "Launched 1977 · Entered interstellar space 2018", ru: "Запуск 1977 · В межзвёздное пространство 2018" },
+      type: { zh: "深空探测器", en: "Deep-space probe", ru: "Межпланетный зонд" },
+      desc: { zh: "1977年8月发射，是唯一飞掠过木星、土星、天王星、海王星四颗巨行星的探测器。2018年进入星际空间，至今仍在向地球传回科学数据。", en: "Launched in August 1977, Voyager 2 is the only spacecraft to have flown past all four giant planets: Jupiter, Saturn, Uranus, and Neptune. It entered interstellar space in 2018 and still returns scientific data.", ru: "Запущен в августе 1977 года — единственный аппарат, пролетевший мимо всех четырёх планет-гигантов: Юпитера, Сатурна, Урана и Нептуна. В 2018 году вышел в межзвёздное пространство и до сих пор передаёт данные." }
+    },
+    newhorizons: {
+      name: { zh: "新视野号 · 飞越冥王星", en: "New Horizons · Pluto Flyby", ru: "«Новые горизонты» · пролёт Плутона" },
+      short: { zh: "新视野号飞越冥王星", en: "New Horizons Pluto flyby", ru: "Пролёт Плутона" },
+      year: { zh: "2006年发射 · 2015年飞越冥王星", en: "Launched 2006 · Pluto flyby 2015", ru: "Запуск 2006 · Пролёт Плутона 2015" },
+      type: { zh: "深空探测器", en: "Deep-space probe", ru: "Межпланетный зонд" },
+      desc: { zh: "2006年发射，2015年7月飞越冥王星并传回首张高清特写，让人类第一次看清这颗矮行星的“心形”冰原。2019年又飞掠了柯伊伯带小天体“天涯海角”（Arrokoth）。", en: "Launched in 2006, New Horizons flew past Pluto in July 2015, sending back the first close-up images and revealing the dwarf planet's \"heart-shaped\" ice plain. In 2019 it flew past the Kuiper Belt object Arrokoth.", ru: "Запущена в 2006 году; в июле 2015-го пролетела мимо Плутона, впервые показав его крупным планом и открыв «сердце» из льда. В 2019 году пролетела мимо объекта пояса Койпера Аррокот." }
+    }
+  };
+  let currentLang = "zh";
+  try {
+    const savedLang = localStorage.getItem("solarLang");
+    if (savedLang && LANGS.indexOf(savedLang) >= 0) {
+      currentLang = savedLang;
+    } else {
+      const navLang = (navigator.language || "zh").toLowerCase();
+      if (navLang.indexOf("zh") === 0) currentLang = (navLang.indexOf("tw") >= 0 || navLang.indexOf("hk") >= 0) ? "zhTW" : "zh";
+      else if (navLang.indexOf("ru") === 0) currentLang = "ru";
+      else currentLang = "en";
+    }
+  } catch (e) {}
+  function L(obj) {
+    if (!obj) return "";
+    if (obj[currentLang]) return obj[currentLang];
+    if (currentLang === "zhTW" && obj.zh) return zhTW(obj.zh);
+    return obj.zh || "";
+  }
+  function t(key) {
+    const o = UI_T[key];
+    return (o && L(o)) || key;
+  }
+  function formatBigKm(km, en) {
+    if (km >= 1e9) {
+      const v = (km / 1e9).toFixed(3).replace(/\.?0+$/, "");
+      return en ? v + " billion km" : v.replace(".", ",") + " млрд км";
+    }
+    if (km >= 1e6) {
+      const v = (km / 1e6).toFixed(3).replace(/\.?0+$/, "");
+      return en ? v + " million km" : v.replace(".", ",") + " млн км";
+    }
+    return en ? km.toLocaleString("en-US") + " km" : km.toLocaleString("ru-RU") + " км";
+  }
+  function localizeValue(v) {
+    if (currentLang === "zh") return v;
+    if (currentLang === "zhTW") return zhTW(v);
+    const en = currentLang === "en";
+    const special = {
+      "火星与木星之间": en ? "Between Mars and Jupiter" : "Между Марсом и Юпитером",
+      "海王星轨道之外": en ? "Beyond Neptune's orbit" : "За орбитой Нептуна",
+      "数百万颗": en ? "Millions" : "Миллионы",
+      "约 2.2 ~ 3.2 AU": en ? "~2.2 – 3.2 AU" : "~2,2 – 3,2 а.е.",
+      "约 30 ~ 55 AU": en ? "~30 – 55 AU" : "~30 – 55 а.е.",
+      "冰、甲烷、氨": en ? "Ice, methane, ammonia" : "Лёд, метан, аммиак",
+      "冥王星": en ? "Pluto" : "Плутон",
+      "G2V 黄矮星": en ? "G2V yellow dwarf" : "G2V жёлтый карлик"
+    };
+    if (special[v]) return special[v];
+    let m = v.match(/^谷神星（([\d,.]+)\s*km）$/);
+    if (m) return en ? "Ceres (" + m[1] + " km)" : "Церера (" + m[1].replace(/,/g, " ") + " км)";
+    m = v.match(/^约?\s*([\d,.]+)\s*(万|亿)\s*km$/);
+    if (m) return formatBigKm(parseFloat(m[1].replace(/,/g, "")) * (m[2] === "万" ? 10000 : 100000000), en);
+    m = v.match(/^([\d.]+)\s*天（潮汐锁定）$/);
+    if (m) return en ? m[1] + " days (tidally locked)" : m[1].replace(".", ",") + " дней (приливная блокировка)";
+    m = v.match(/^([\d.]+)\s*天（逆向）$/);
+    if (m) return en ? m[1] + " days (retrograde)" : m[1].replace(".", ",") + " дней (ретроградное)";
+    m = v.match(/^([\d.]+)\s*天$/);
+    if (m) return en ? m[1] + " days" : m[1].replace(".", ",") + " дней";
+    m = v.match(/^([\d.]+)\s*小时$/);
+    if (m) return en ? m[1] + " hours" : m[1].replace(".", ",") + " часов";
+    m = v.match(/^([\d.]+)\s*年$/);
+    if (m) return en ? m[1] + " years" : m[1].replace(".", ",") + " лет";
+    m = v.match(/^约\s*([-\d.\s~,]+)\s*℃$/);
+    if (m) {
+      const body = m[1].trim().replace(/\s*~\s*/, en ? " ~ " : " – ").replace(/,/g, en ? "," : " ");
+      return "~" + body + " °C";
+    }
+    if (m) return en ? m[1].trim().replace(/\s*~\s*/, " ~ ") + " °C" : m[1].trim().replace(/\s*~\s*/, " – ").replace(/,/g, " ") + " °C";
+    m = v.match(/^([\d,]+)\s*km$/);
+    if (m) return en ? m[1] + " km" : m[1].replace(/,/g, " ") + " км";
+    m = v.match(/^([\d.]+)%$/);
+    if (m) return en ? v : v.replace(".", ",");
+    return v;
+  }
+  function bodyFacts(key) {
+    const data = key === "moon" ? MOON_INFO : BODIES[key];
+    if (!data || !data.facts) return [];
+    return data.facts.map(function (f) {
+      const lk = FACT_LABEL_KEYS[f[0]];
+      return [lk ? t(lk) : f[0], localizeValue(f[1])];
+    });
+  }
+  function localBody(key) {
+    if (key === "moon") {
+      return { name: L(MOON_T.name), type: L(MOON_T.type), en: MOON_INFO.en || "Moon", desc: L(MOON_T.desc), facts: bodyFacts("moon") };
+    }
+    const d = BODIES[key];
+    if (!d) return null;
+    const tr = BODY_T[key] || {};
+    return { name: L(tr.name) || d.name, type: L(tr.type) || d.type, en: d.en || "", desc: L(tr.desc) || d.desc, facts: bodyFacts(key) };
+  }
+  function localEvent(ev) {
+    const tr = EVENT_T[ev.key] || {};
+    return {
+      name: L(tr.name) || ev.name,
+      short: L(tr.short) || ev.short,
+      year: L(tr.year) || ev.year,
+      type: L(tr.type) || ev.type,
+      desc: L(tr.desc) || ev.desc
+    };
+  }
+  function bodyName(key) {
+    const d = localBody(key);
+    return d ? d.name : key;
+  }
+  function applyStaticI18n() {
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+      el.title = t(el.getAttribute("data-i18n-title"));
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+    });
+    document.title = t("title");
+    const cc = document.getElementById("ccLink");
+    if (cc) {
+      cc.href = currentLang === "en"
+        ? "https://creativecommons.org/licenses/by/4.0/"
+        : currentLang === "ru"
+          ? "https://creativecommons.org/licenses/by/4.0/deed.ru"
+          : currentLang === "zhTW"
+            ? "https://creativecommons.org/licenses/by/4.0/deed.zh-hant"
+            : "https://creativecommons.org/licenses/by/4.0/deed.zh";
+    }
+  }
+  function setLang(lang) {
+    if (LANGS.indexOf(lang) < 0) lang = "zh";
+    currentLang = lang;
+    try { localStorage.setItem("solarLang", lang); } catch (e) {}
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "zhTW" ? "zh-Hant" : lang;
+    applyStaticI18n();
+    buildNav();
+    refreshLabels();
+    updateFollowBadge();
+    if (selectedKey) showInfo(selectedKey);
+    if (activeEventKey) showEventCard(EVENT_BY_KEY[activeEventKey]);
+    const ls = document.getElementById("langSelect");
+    if (ls) ls.value = lang;
+  }
 
   /* =========================================================
    *  基础场景
@@ -378,25 +697,46 @@
   const pickableByKey = {};
   let moonMesh = null;
 
-  function makeLabel(text, color) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 128;
+  function drawLabelSprite(sprite, text, color) {
+    const canvas = sprite.userData.canvas;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "bold 56px Microsoft YaHei, PingFang SC, sans-serif";
+    ctx.font = "bold 56px Microsoft YaHei, PingFang SC, 'Segoe UI', Roboto, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0,0,0,0.9)";
     ctx.shadowBlur = 14;
     ctx.fillStyle = color || "#dbe4ff";
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    if (sprite.material && sprite.material.map) sprite.material.map.needsUpdate = true;
+  }
+  function makeLabel(text, color) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 128;
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = 4;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: tex, transparent: true, depthWrite: false
     }));
+    sprite.userData.canvas = canvas;
+    sprite.userData.labelText = text;
+    sprite.userData.labelColor = color || "#dbe4ff";
+    drawLabelSprite(sprite, text, color);
     return sprite;
+  }
+  // 语言切换后重绘 3D 标签
+  function refreshLabels() {
+    Object.keys(labelSprites).forEach(function (key) {
+      const s = labelSprites[key];
+      if (!s || !s.userData || !s.userData.canvas) return;
+      const text = bodyName(key);
+      if (text !== s.userData.labelText) {
+        drawLabelSprite(s, text, s.userData.labelColor);
+        s.userData.labelText = text;
+      }
+    });
   }
 
   /* =========================================================
@@ -1247,19 +1587,19 @@
     neptune: "#5f7ff0", asteroidBelt: "#9a8f7a", kuiperBelt: "#7a86a8"
   };
   const navOrder = [
-    { title: "恒星", items: [{ key: "sun" }] },
-    { title: "行星", items: PLANET_KEYS.map(function (k) { return { key: k }; }) },
-    { title: "卫星", items: [{ key: "moon", sub: ["apollo11", "change4"] }] },
-    { title: "小行星带", items: [{ key: "asteroidBelt" }] },
+    { titleKey: "navStar", items: [{ key: "sun" }] },
+    { titleKey: "navPlanets", items: PLANET_KEYS.map(function (k) { return { key: k }; }) },
+    { titleKey: "navSatellites", items: [{ key: "moon", sub: ["apollo11", "change4"] }] },
+    { titleKey: "navAsteroidBelt", items: [{ key: "asteroidBelt" }] },
     {
-      title: "人类里程碑",
+      titleKey: "navMilestones",
       items: [
         { key: "voyager1", event: true },
         { key: "voyager2", event: true },
         { key: "newhorizons", event: true }
       ]
     },
-    { title: "柯伊伯带", items: [{ key: "kuiperBelt" }] }
+    { titleKey: "navKuiperBelt", items: [{ key: "kuiperBelt" }] }
   ];
 
   function buildNav() {
@@ -1269,7 +1609,7 @@
       gDiv.className = "nav-group";
       const title = document.createElement("div");
       title.className = "nav-group-title";
-      title.textContent = groupDef.title;
+      title.textContent = t(groupDef.titleKey);
       gDiv.appendChild(title);
       groupDef.items.forEach(function (item) {
         const key = item.key;
@@ -1283,8 +1623,8 @@
         else dot.style.background = bodyColors[key] || "#fff";
         const name = document.createElement("span");
         name.textContent = item.event
-          ? EVENT_BY_KEY[key].short
-          : (key === "moon" ? MOON_INFO.name : BODIES[key].name);
+          ? localEvent(EVENT_BY_KEY[key]).short
+          : bodyName(key);
         btn.appendChild(dot);
         btn.appendChild(name);
 
@@ -1306,7 +1646,7 @@
             eDot.className = "nav-dot";
             eDot.style.background = "#" + ev.color.toString(16).padStart(6, "0");
             const eName = document.createElement("span");
-            eName.textContent = ev.short;
+            eName.textContent = localEvent(ev).short;
             eBtn.appendChild(eDot);
             eBtn.appendChild(eName);
             eBtn.addEventListener("click", function (e) {
@@ -1470,10 +1810,12 @@
   }
 
   function showInfo(key) {
-    const data = key === "moon" ? MOON_INFO : BODIES[key];
+    const data = localBody(key);
     if (!data) return;
     infoName.textContent = data.name;
-    infoType.textContent = data.type + " · " + data.en;
+    infoType.textContent = (currentLang === "zh" || currentLang === "zhTW")
+      ? data.type + " · " + data.en
+      : data.type;
     infoFacts.innerHTML = "";
     data.facts.forEach(function (f) {
       const div = document.createElement("div");
@@ -1491,16 +1833,17 @@
   }
 
   function showEventCard(ev) {
-    eventTitle.textContent = ev.short || ev.name;
-    eventYear.textContent = ev.year + " · " + ev.type;
-    eventDesc.textContent = ev.desc;
+    const le = localEvent(ev);
+    eventTitle.textContent = le.short || le.name;
+    eventYear.textContent = le.year + " · " + le.type;
+    eventDesc.textContent = le.desc;
     eventCard.classList.remove("hidden", "collapsed");
     eventCardPinned = false;
     eventCardDocked = false;
     eventCard.classList.add("following");
     eventCard.classList.remove("pinned");
     document.getElementById("eventDock").textContent = "⇥";
-    document.getElementById("eventDock").title = "固定到右侧";
+    document.getElementById("eventDock").title = t("eventDockTitle");
     document.getElementById("eventCollapse").textContent = "–";
   }
 
@@ -1524,9 +1867,8 @@
       badge.classList.add("hidden");
       return;
     }
-    if (EVENT_BY_KEY[followKey]) nameEl.textContent = EVENT_BY_KEY[followKey].short;
-    else if (followKey === "moon") nameEl.textContent = "月球";
-    else nameEl.textContent = BODIES[followKey] ? BODIES[followKey].name : "";
+    if (EVENT_BY_KEY[followKey]) nameEl.textContent = localEvent(EVENT_BY_KEY[followKey]).short;
+    else nameEl.textContent = bodyName(followKey);
     badge.classList.remove("hidden");
   }
 
@@ -1592,6 +1934,9 @@
       beltGroups[k].visible = beltToggle.checked;
     });
   });
+  document.getElementById("langSelect").addEventListener("change", function () {
+    setLang(this.value);
+  });
 
   document.getElementById("resetView").addEventListener("click", function () {
     selectedKey = null;
@@ -1628,15 +1973,20 @@
       let match;
       if (evKey) {
         const ev = EVENT_BY_KEY[evKey];
+        const le = localEvent(ev);
         match = !q ||
-          ev.name.toLowerCase().indexOf(q) > -1 ||
-          ev.short.toLowerCase().indexOf(q) > -1 ||
-          ev.year.toLowerCase().indexOf(q) > -1;
+          le.name.toLowerCase().indexOf(q) > -1 ||
+          le.short.toLowerCase().indexOf(q) > -1 ||
+          le.year.toLowerCase().indexOf(q) > -1 ||
+          le.type.toLowerCase().indexOf(q) > -1 ||
+          evKey.toLowerCase().indexOf(q) > -1;
       } else {
-        const data = key === "moon" ? MOON_INFO : BODIES[key];
-        match = !q ||
+        const data = localBody(key);
+        match = !q || !data ||
           data.name.toLowerCase().indexOf(q) > -1 ||
-          data.en.toLowerCase().indexOf(q) > -1;
+          data.en.toLowerCase().indexOf(q) > -1 ||
+          data.type.toLowerCase().indexOf(q) > -1 ||
+          key.toLowerCase().indexOf(q) > -1;
       }
       el.style.display = match ? "" : "none";
     });
@@ -1703,7 +2053,7 @@
       origTop: rect.top
     };
     document.getElementById("eventDock").textContent = "⇥";
-    document.getElementById("eventDock").title = "固定到右侧";
+    document.getElementById("eventDock").title = t("eventDockTitle");
     eventCard.classList.add("dragging");
     eventCard.setPointerCapture(e.pointerId);
   });
@@ -1716,7 +2066,7 @@
     eventCard.classList.add("pinned");
     eventCard.classList.remove("following");
     document.getElementById("eventDock").textContent = "⇥";
-    document.getElementById("eventDock").title = "固定到右侧";
+    document.getElementById("eventDock").title = t("eventDockTitle");
   });
   eventCard.addEventListener("pointerup", function () {
     dragState = null;
@@ -1733,14 +2083,14 @@
       eventCardDocked = false;
       eventCardPinned = false;
       this.textContent = "⇥";
-      this.title = "固定到右侧";
+      this.title = t("eventDockTitle");
     } else {
       eventCardDocked = true;
       eventCardPinned = true;
       eventCard.style.left = Math.max(10, window.innerWidth - 298) + "px";
       eventCard.style.top = "74px";
       this.textContent = "⇤";
-      this.title = "回到标记位置";
+      this.title = t("eventBackTitle");
     }
   });
 
@@ -1764,7 +2114,7 @@
     if (!paused) {
       const simDt = dt * timeScale / 60; // 相对“天数”的推进
       simDays += simDt;
-      timeDisplay.textContent = "运行 " + Math.floor(simDays) + " 天";
+      timeDisplay.textContent = t("timeRunning").replace("{n}", Math.floor(simDays));
 
       Object.keys(BODIES).forEach(function (key) {
         const data = BODIES[key];
@@ -1883,10 +2233,11 @@
   }
 
   // 首次渲染后隐藏加载层
-  renderer.render(scene, camera);
   // 默认持续跟踪地球（保持全景距离，不拉近）
   followKey = "earth";
-  updateFollowBadge();
+  // 应用语言：界面、菜单、3D 标签、信息面板
+  setLang(currentLang);
+  renderer.render(scene, camera);
   document.getElementById("loading").classList.add("hide");
   animate();
 

@@ -1,4 +1,4 @@
-/* 动态太阳系 · Interactive Solar System — 界面样式 */
+/* 动态太阳系模型 · Interactive Solar System — 界面样式 */
 
 :root {
   --panel-bg: rgba(10, 14, 28, 0.82);
@@ -129,6 +129,21 @@ html, body {
   font-size: 13px;
   color: var(--text-dim);
   white-space: nowrap;
+}
+
+.lang-select {
+  background: rgba(10,14,28,0.82);
+  color: var(--text);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  max-width: 122px;
+}
+.lang-select option {
+  background: #101528;
+  color: #dbe4ff;
 }
 
 /* ---------- 侧边栏 ---------- */
@@ -512,6 +527,11 @@ html, body {
   .speed-label input { width: 62%; max-width: 230px; }
   .check { font-size: 12px; }
   .time-display { display: none; }
+  .lang-select {
+    font-size: 11px;
+    padding: 3px 4px;
+    max-width: 98px;
+  }
   #sidebar { top: 96px; width: 240px; }
   #sidebarMask { inset: 96px 0 0 0; }
   #hint { display: none; }
