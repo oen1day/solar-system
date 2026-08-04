@@ -17,7 +17,7 @@
     },
     mercury: {
       key: "mercury", name: "水星", en: "Mercury", type: "类地行星",
-      radius: 0.057, distance: 9.5, color: 0xb8b8c0,
+      radius: 0.057, distance: 6.0, color: 0xb8b8c0,
       angle: 0.4, orbitSpeed: 5.31, spinSpeed: 0.03,
       facts: [
         ["直径", "4,879 km"], ["距太阳", "5,790 万 km"],
@@ -28,7 +28,7 @@
     },
     venus: {
       key: "venus", name: "金星", en: "Venus", type: "类地行星",
-      radius: 0.142, distance: 12.5, color: 0xe8c27a,
+      radius: 0.142, distance: 11.2, color: 0xe8c27a,
       angle: 2.0, orbitSpeed: 3.52, spinSpeed: -0.015,
       facts: [
         ["直径", "12,104 km"], ["距太阳", "1.082 亿 km"],
@@ -51,7 +51,7 @@
     },
     mars: {
       key: "mars", name: "火星", en: "Mars", type: "类地行星",
-      radius: 0.08, distance: 19.5, color: 0xd1664a,
+      radius: 0.08, distance: 23.6, color: 0xd1664a,
       angle: 5.5, orbitSpeed: 1.81, spinSpeed: 0.1,
       facts: [
         ["直径", "6,792 km"], ["距太阳", "2.279 亿 km"],
@@ -62,7 +62,7 @@
     },
     asteroidBelt: {
       key: "asteroidBelt", name: "小行星带", en: "Asteroid Belt", type: "小行星带",
-      radius: 1.0, distance: 28.0, color: 0x9a8f7a,
+      radius: 1.0, distance: 42.0, color: 0x9a8f7a,
       angle: 0, orbitSpeed: 0.5, spinSpeed: 0,
       facts: [
         ["位置", "火星与木星之间"], ["范围", "约 2.2 ~ 3.2 AU"],
@@ -72,7 +72,7 @@
     },
     jupiter: {
       key: "jupiter", name: "木星", en: "Jupiter", type: "气态巨行星",
-      radius: 1.65, distance: 37.0, color: 0xd9a066,
+      radius: 1.65, distance: 80.6, color: 0xd9a066,
       angle: 1.2, orbitSpeed: 0.69, spinSpeed: 0.28,
       facts: [
         ["直径", "142,984 km"], ["距太阳", "7.786 亿 km"],
@@ -83,7 +83,7 @@
     },
     saturn: {
       key: "saturn", name: "土星", en: "Saturn", type: "气态巨行星",
-      radius: 1.42, distance: 49.0, color: 0xe3c987,
+      radius: 1.42, distance: 148.4, color: 0xe3c987,
       angle: 3.0, orbitSpeed: 0.454, spinSpeed: 0.26,
       hasRings: true, ringColor: 0xcbb087,
       facts: [
@@ -95,7 +95,7 @@
     },
     uranus: {
       key: "uranus", name: "天王星", en: "Uranus", type: "冰巨行星",
-      radius: 0.6, distance: 62.0, color: 0x8fd8d8,
+      radius: 0.6, distance: 297.4, color: 0x8fd8d8,
       angle: 0.8, orbitSpeed: 0.319, spinSpeed: 0.2,
       hasFaintRing: true,
       facts: [
@@ -107,7 +107,7 @@
     },
     neptune: {
       key: "neptune", name: "海王星", en: "Neptune", type: "冰巨行星",
-      radius: 0.58, distance: 73.0, color: 0x5f7ff0,
+      radius: 0.58, distance: 466.0, color: 0x5f7ff0,
       angle: 2.6, orbitSpeed: 0.249, spinSpeed: 0.22,
       facts: [
         ["直径", "49,528 km"], ["距太阳", "44.95 亿 km"],
@@ -118,7 +118,7 @@
     },
     kuiperBelt: {
       key: "kuiperBelt", name: "柯伊伯带", en: "Kuiper Belt", type: "冰质天体带",
-      radius: 1.0, distance: 92.0, color: 0x7a86a8,
+      radius: 1.0, distance: 660.0, color: 0x7a86a8,
       angle: 0, orbitSpeed: 0.12, spinSpeed: 0,
       facts: [
         ["位置", "海王星轨道之外"], ["范围", "约 30 ~ 55 AU"],
@@ -131,6 +131,11 @@
   const PLANET_KEYS = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"];
   const BELT_KEYS = ["asteroidBelt", "kuiperBelt"];
   const MOON_RADIUS = 0.041;
+  // 月球轨道：视觉折中（真实约为 60 倍地球半径，按当前尺度会直接嵌入地球球体）
+  const MOON_ORBIT_R = 1.0;
+  // 小行星带 2.2~3.2 AU、柯伊伯带 30~55 AU（1 AU = 15.5 场景单位）
+  const BELT_RANGE = [34.1, 49.6];
+  const KUIPER_RANGE = [465, 852.5];
 
   const MOON_INFO = {
     key: "moon", name: "月球", en: "Moon", type: "天然卫星",
@@ -159,19 +164,19 @@
     {
       key: "voyager1", name: "旅行者1号", short: "旅行者1号",
       year: "1977年发射 · 2012年进入星际空间", type: "深空探测器", body: "space",
-      pos: [95, 6, -15], color: 0x5aa8ff,
+      pos: [950, 8, -20], color: 0x5aa8ff,
       desc: "1977年9月发射，先后飞掠木星和土星，2012年成为首个进入星际空间的人造物体。它目前仍是距离地球最远的人造探测器，携带的镀金唱片向宇宙传递着人类文明的问候。"
     },
     {
       key: "voyager2", name: "旅行者2号", short: "旅行者2号",
       year: "1977年发射 · 2018年进入星际空间", type: "深空探测器", body: "space",
-      pos: [-88, -5, 25], color: 0x5aa8ff,
+      pos: [-880, -6, 30], color: 0x5aa8ff,
       desc: "1977年8月发射，是唯一飞掠过木星、土星、天王星、海王星四颗巨行星的探测器。2018年进入星际空间，至今仍在向地球传回科学数据。"
     },
     {
       key: "newhorizons", name: "新视野号 · 飞越冥王星", short: "新视野号飞越冥王星",
       year: "2006年发射 · 2015年飞越冥王星", type: "深空探测器", body: "space",
-      pos: [80, 4, 20], color: 0xffc85a,
+      pos: [800, 5, 25], color: 0xffc85a,
       desc: "2006年发射，2015年7月飞越冥王星并传回首张高清特写，让人类第一次看清这颗矮行星的“心形”冰原。2019年又飞掠了柯伊伯带小天体“天涯海角”（Arrokoth）。"
     }
   ];
@@ -184,8 +189,8 @@
   const container = document.getElementById("app");
   function isMobile() { return window.innerWidth < 768; }
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 3000);
-  camera.position.set(80, 65, 200);
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 6000);
+  camera.position.set(350, 260, 800);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile() ? 1.5 : 2));
@@ -199,7 +204,7 @@
   controls.dampingFactor = 0.08;
   const defaultMinDistance = 1.5;
   controls.minDistance = defaultMinDistance;
-  controls.maxDistance = 1000;
+  controls.maxDistance = 2200;
   controls.rotateSpeed = 0.7;
   controls.zoomSpeed = 1.1;
 
@@ -209,7 +214,7 @@
     const positions = new Float32Array(starCount * 3);
     const colors = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount; i++) {
-      const r = 1400 + Math.random() * 1000;
+      const r = 2600 + Math.random() * 2000;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -234,7 +239,7 @@
 
   // 光照
   scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-  const sunLight = new THREE.PointLight(0xfff2cc, 8.0, 600, 0.8);
+  const sunLight = new THREE.PointLight(0xfff2cc, 8.0, 6000, 0.5);
   sunLight.position.set(0, 0, 0);
   scene.add(sunLight);
 
@@ -986,7 +991,7 @@
 
     // 小行星带：特殊处理
     if (key === "asteroidBelt") {
-      const beltMesh = createBelt(25, 31, isMobile() ? 1000 : 1800, 0x77777d, [0.07, 0.16], 0.8);
+      const beltMesh = createBelt(BELT_RANGE[0], BELT_RANGE[1], isMobile() ? 1500 : 2600, 0x77777d, [0.07, 0.16], 0.8);
       beltMesh.userData.key = "asteroidBelt";
       group.add(beltMesh);
       group.userData.isBelt = true;
@@ -999,7 +1004,7 @@
     }
 
     if (key === "kuiperBelt") {
-      const beltMesh = createBelt(83, 101, isMobile() ? 1200 : 2000, 0x7f879f, [0.08, 0.2], 1.5);
+      const beltMesh = createBelt(KUIPER_RANGE[0], KUIPER_RANGE[1], isMobile() ? 2500 : 4200, 0x7f879f, [0.08, 0.2], 1.5);
       beltMesh.userData.key = "kuiperBelt";
       group.add(beltMesh);
       group.userData.isBelt = true;
@@ -1072,7 +1077,7 @@
       );
       moon.userData.key = "moon";
       moon.name = "moon";
-      moon.position.set(data.radius * 2.2, 0.25, 0);
+      moon.position.set(MOON_ORBIT_R, 0.25, 0);
       group.add(moon);
       group.userData.moon = moon;
       pickables.push(moon);
@@ -1366,6 +1371,24 @@
     return getBodyRadius(key) * 1.2 + 0.3;
   }
 
+  // 通用防穿：无论是否处于跟随状态，镜头都不允许进入任何天体内部
+  function enforceNoClip() {
+    const camPos = camera.position;
+    const v = new THREE.Vector3();
+    const pushOut = function (center, r) {
+      const off = camPos.clone().sub(center);
+      const d = off.length();
+      if (d < r && d > 1e-6) {
+        camPos.copy(center).add(off.normalize().multiplyScalar(r + 0.05));
+      }
+    };
+    pushOut(new THREE.Vector3(0, 0, 0), BODIES.sun.radius);
+    PLANET_KEYS.forEach(function (key) {
+      pushOut(bodyWorldPos(key, v), BODIES[key].radius);
+    });
+    pushOut(bodyWorldPos("moon", v), MOON_RADIUS);
+  }
+
   function eventWorldPos(ev, out) {
     out = out || new THREE.Vector3();
     if (ev.body === "moon" && ev._worldAnchor && ev._localOffset) {
@@ -1576,7 +1599,7 @@
     controls.enabled = false;
     flying = {
       startCam, startTarget,
-      endCam: new THREE.Vector3(80, 65, 200),
+      endCam: new THREE.Vector3(350, 260, 800),
       endTarget: new THREE.Vector3(0, 0, 0),
       t0, duration: 1200
     };
@@ -1744,8 +1767,8 @@
         if (sphere) sphere.rotation.y += dt * data.spinSpeed * (timeScale / 30);
         if (inner && inner.userData.moon) {
           const moon = inner.userData.moon;
-          moon.position.x = BODIES.earth.radius * 2.2 * Math.cos(simDays * 0.18);
-          moon.position.z = BODIES.earth.radius * 2.2 * Math.sin(simDays * 0.18);
+          moon.position.x = MOON_ORBIT_R * Math.cos(simDays * 0.18);
+          moon.position.z = MOON_ORBIT_R * Math.sin(simDays * 0.18);
         }
         if (inner && inner.userData.cloud) {
           // 云层比地表转得快一点，形成流动的云和飓风
@@ -1841,6 +1864,7 @@
       s.scale.set(sy * 4, sy, 1);
     });
 
+    enforceNoClip();
     controls.update();
     renderer.render(scene, camera);
   }
