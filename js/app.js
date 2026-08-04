@@ -619,6 +619,18 @@
         mat.emissive = new THREE.Color(0xffc86a);
         mat.emissiveMap = tex;
         mat.emissiveIntensity = 1.3;
+        // 默认自发光会不分昼夜叠加到整个球面，导致白天亮面也透出灯光。
+        // 这里在着色器里用“直射光照强度”作为闸门：亮面抑制灯光，暗面完全显示，
+        // 明暗交界处用 smoothstep 自然过渡，保留黄昏时分的城市灯光效果。
+        mat.onBeforeCompile = function (shader) {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <aomap_fragment>",
+            "#include <aomap_fragment>\n" +
+            "\tfloat cityDayLum = dot(reflectedLight.directDiffuse, vec3(0.299, 0.587, 0.114));\n" +
+            "\tfloat cityDarkFactor = 1.0 - smoothstep(0.02, 0.15, cityDayLum);\n" +
+            "\ttotalEmissiveRadiance *= cityDarkFactor;"
+          );
+        };
         mat.needsUpdate = true;
       }
     });
