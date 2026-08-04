@@ -1,4 +1,4 @@
-动态太阳系网站 · 使用说明
+动态太阳系模型 · 使用说明
 ================================
 
 在线演示：https://oen1day.github.io/solar-system/
@@ -16,13 +16,12 @@
 
 【界面功能】
 · 左上角 ☰ 按钮：展开 / 收起侧边导航菜单
+· 打开网站默认以地球为中心并持续跟随，保持全景距离不会自动拉近
 · 侧边菜单：点击任意星球、月球或小行星带，一键定位并飞近查看
 · 点击后镜头会持续跟随该天体公转，顶部会出现“跟随中”提示，点 ✕ 可取消跟随
-· 打开网站默认以地球为中心并持续跟随，保持全景距离不会自动拉近
 · 卫星分组：点击“月球”直接定位月球；点月球右侧 ▸ 可展开查看月球上的历史事件
 · 人类里程碑分组：阿波罗11号登月、嫦娥四号月背着陆、旅行者1号/2号、新视野号飞越冥王星，
   点击即可飞到事件位置，事件信息卡默认展开、可收起或关闭
-   （事件标记默认隐藏，只有选中对应事件后，月球/太空中才会显示该事件的标记点）
 · 顶部控制条：
     ⏸ / ▶     暂停 / 继续公转动画
     速度滑块    调整公转速度（1x ~ 500x）
@@ -40,5 +39,52 @@ css/style.css     界面样式
 js/three.min.js   3D 引擎（Three.js）
 js/OrbitControls.js  视角控制组件
 js/app.js         太阳系程序逻辑
-README.md         项目说明
+README.md         项目说明（中英双语）
 LICENSE           开源协议（MIT）
+
+
+================================
+=== English Usage ===
+================================
+
+Live demo: https://oen1day.github.io/solar-system/
+Repository: https://github.com/oen1day/solar-system
+
+How to open: double-click index.html in the folder and open it with a
+browser (Edge / Chrome recommended). It works offline without internet.
+
+Mouse controls:
+- Left-drag: rotate the view
+- Scroll: zoom in / out
+- Right-drag: pan
+- Click a planet: show its info and fly close
+
+Interface:
+- The ☰ button in the top-left opens / closes the navigation menu
+- On load, the view is centered on Earth and keeps following it at overview distance
+- Side menu: click any planet, the Moon, or a belt to focus and fly close
+- After focusing, the camera keeps following the body as it orbits; the
+  "Following · " badge appears at the top — click ✕ to stop following
+- Moon group: click "Moon" to focus; click ▸ to expand historical events
+- Milestones group: Apollo 11, Chang'e 4, Voyager 1/2, New Horizons —
+  click to fly to the event; the info card opens by default and can be
+  collapsed or closed
+- Top bar:
+    ⏸ / ▶     pause / resume the animation
+    Speed slider  adjust orbit speed (1x – 500x)
+    Orbits     show / hide orbit lines
+    Labels     show / hide planet names
+    Asteroid belt  show / hide the asteroid belt
+    Language menu  switch UI language (简体中文 / 繁體中文 / English / Русский)
+- Info panel: shows the selected body's diameter, distance, periods, etc.
+- Search box: filter menu items by name (Chinese or English)
+- Reset view: return to the Earth-centered overview and resume following Earth
+
+File structure:
+index.html        main page
+css/style.css     styles
+js/three.min.js   Three.js engine
+js/OrbitControls.js  camera controls
+js/app.js         main program logic
+README.md         project documentation (bilingual)
+LICENSE           MIT license
