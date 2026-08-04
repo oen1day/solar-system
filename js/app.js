@@ -1591,7 +1591,7 @@
   document.getElementById("resetView").addEventListener("click", function () {
     selectedKey = null;
     activeEventKey = null;
-    followKey = null;
+    followKey = "earth";
     controls.minDistance = defaultMinDistance;
     hideEventCard();
     updateFollowBadge();
@@ -1879,6 +1879,9 @@
 
   // 首次渲染后隐藏加载层
   renderer.render(scene, camera);
+  // 默认持续跟踪地球（保持全景距离，不拉近）
+  followKey = "earth";
+  updateFollowBadge();
   document.getElementById("loading").classList.add("hide");
   animate();
 
