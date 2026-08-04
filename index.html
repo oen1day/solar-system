@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>动态太阳系 · Solar System</title>
-  <link rel="stylesheet" href="css/style.css?v=20260804">
+  <link rel="stylesheet" href="css/style.css?v=20260805">
 </head>
 <body>
   <div id="app"></div>
@@ -78,6 +78,10 @@
   <!-- 操作提示 -->
   <div id="hint">
     左键拖拽旋转 · 滚轮缩放 · 右键平移 · 点击星球或侧边菜单定位
+  </div>
+
+  <div id="attribution">
+    贴图来源：<a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener">Solar System Scope</a>（<a href="https://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="noopener">CC BY 4.0</a>）· NASA
   </div>
 
   <div id="loading" class="loading">
@@ -177,7 +181,7 @@
         return;
       }
       status("正在初始化太阳系…");
-      var appOk = await load("js/app.js?v=20260804", 20000);
+      var appOk = await load("js/app.js?v=20260805", 20000);
       if (!appOk) {
         status("主程序下载失败：网络可能无法访问资源服务器，请检查网络后重试");
         showRetry();

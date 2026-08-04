@@ -446,6 +446,29 @@ html, body {
   white-space: nowrap;
 }
 
+#attribution {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 25;
+  max-width: 70vw;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: rgba(10,14,28,0.6);
+  border: 1px solid var(--panel-border);
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.55);
+}
+#attribution a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+}
+#attribution a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
 .loading {
   position: fixed;
   inset: 0;
@@ -490,6 +513,13 @@ html, body {
   #sidebar { top: 96px; width: 240px; }
   #sidebarMask { inset: 96px 0 0 0; }
   #hint { display: none; }
+  #attribution {
+    right: 8px;
+    bottom: 8px;
+    font-size: 10px;
+    max-width: 82vw;
+    padding: 4px 8px;
+  }
   #infoPanel {
     top: auto;
     bottom: 12px;
