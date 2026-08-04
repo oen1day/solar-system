@@ -1127,6 +1127,13 @@
     if (key !== "sun") buildBody(key);
   });
 
+  // 默认视角以地球为中心（不贴近，保持全景观察距离）
+  {
+    const earthPos = bodyWorldPos("earth");
+    controls.target.copy(earthPos);
+    camera.position.copy(earthPos).add(new THREE.Vector3(350, 260, 800));
+  }
+
   // 小行星带/柯伊伯带标签（加在 belt 的组上）
   ["asteroidBelt", "kuiperBelt"].forEach(function (key) {
     const label = makeLabel(BODIES[key].name, "#aab6d8");
@@ -1592,15 +1599,16 @@
       el.classList.remove("active");
     });
     infoPanel.classList.add("hidden");
-    // 飞回全景
+    // 飞回默认全景（以地球为中心）
     const startCam = camera.position.clone();
     const startTarget = controls.target.clone();
+    const earthPos = bodyWorldPos("earth");
     const t0 = performance.now();
     controls.enabled = false;
     flying = {
       startCam, startTarget,
-      endCam: new THREE.Vector3(350, 260, 800),
-      endTarget: new THREE.Vector3(0, 0, 0),
+      endCam: earthPos.clone().add(new THREE.Vector3(350, 260, 800)),
+      endTarget: earthPos.clone(),
       t0, duration: 1200
     };
   });
