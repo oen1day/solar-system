@@ -498,31 +498,32 @@
     ctx.putImageData(img, 0, 0);
   }
 
-  // 绘制一个飓风螺旋（白色螺旋臂 + 暗色风眼）
-  function drawHurricane(ctx, cx, cy, r) {
-    // 风眼
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.16, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(30,40,55,0.5)";
-    ctx.fill();
-    // 连续螺旋云带
-    for (let arm = 0; arm < 7; arm++) {
-      const startAng = (arm / 7) * Math.PI * 2;
-      ctx.beginPath();
-      for (let i = 0; i <= 40; i++) {
-        const t = i / 26;
-        const ang = startAng + t * 5.2;
-        const dist = r * (0.24 + t * 1.02);
-        const px = cx + Math.cos(ang) * dist;
-        const py = cy + Math.sin(ang) * dist * 0.72;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+  // 用噪声生成自然的不规则螺旋云带（风眼 + 眼墙 + 断断续续的螺旋云臂）
+  function makeStormAlpha(nz, st, W, H) {
+    const cx = ((st.lon + 180) / 360) * W;
+    const cy = ((90 - st.lat) / 180) * H;
+    return function (x, y) {
+      const dx = (x - cx) / (W / 360);
+      const dy = (y - cy) / (H / 180);
+      const r = Math.sqrt(dx * dx + dy * dy) / st.rDeg;
+      if (r > 1.3) return 0;
+      const angle = Math.atan2(dy, dx);
+      const shear = r * 2.6;
+      const a2 = angle + shear;
+      const n1 = nz.fbm(Math.cos(a2) * r * 4.5 + st.sx, Math.sin(a2) * r * 4.5 + st.sy, 4);
+      const n2 = nz.fbm(Math.cos(a2) * r * 10 + st.sx * 2, Math.sin(a2) * r * 10 + st.sy * 2, 3);
+      const band = n1 * 0.65 + n2 * 0.35;
+      let a;
+      if (r < 0.17) {
+        a = 0;                        // 清晰的风眼
+      } else if (r < 0.34) {
+        a = 0.95;                     // 明亮的眼墙
+      } else {
+        a = Math.max(0, Math.min(1, (band - 0.45) * 3.2));
+        a *= Math.max(0, (1.3 - r) / 0.98);   // 外围逐渐消散
       }
-      ctx.strokeStyle = "rgba(255,255,255," + (0.78 - arm * 0.02).toFixed(2) + ")";
-      ctx.lineWidth = r * 0.1 * (1 - arm * 0.03);
-      ctx.lineCap = "round";
-      ctx.stroke();
-    }
+      return a;
+    };
   }
 
   // 动态云层纹理：稀疏云团 + 3 个飓风（大西洋/西北太平洋/印度洋）
@@ -533,6 +534,14 @@
     canvas.height = H;
     const ctx = canvas.getContext("2d");
     const nz = makeNoise2D(mulberry32(4242));
+    const storms = [
+      { lat: 18, lon: -62, rDeg: 10, sx: 3.7, sy: 11.2 },
+      { lat: 22, lon: 138, rDeg: 9, sx: 21.4, sy: 5.8 },
+      { lat: -12, lon: 88, rDeg: 8, sx: 8.1, sy: 17.3 }
+    ];
+    const stormAlphas = storms.map(function (st) {
+      return makeStormAlpha(nz, st, W, H);
+    });
     const img = ctx.createImageData(W, H);
     for (let y = 0; y < H; y++) {
       const latFrac = Math.abs(y / H - 0.5) * 2;
@@ -543,6 +552,10 @@
         let cloud = c1 * 0.6 + c2 * 0.4 + latFrac * latFrac * 0.12;
         let a = 0;
         if (cloud > 0.58) a = Math.min(1, (cloud - 0.58) * 2.6);
+        for (let s = 0; s < stormAlphas.length; s++) {
+          const sa = stormAlphas[s](x, y);
+          if (sa > a) a = sa;
+        }
         img.data[i] = 255;
         img.data[i + 1] = 255;
         img.data[i + 2] = 255;
@@ -550,16 +563,6 @@
       }
     }
     ctx.putImageData(img, 0, 0);
-    const storms = [
-      { lat: 18, lon: -62, r: 52 },
-      { lat: 22, lon: 138, r: 46 },
-      { lat: -12, lon: 88, r: 40 }
-    ];
-    storms.forEach(function (st) {
-      const cx = ((st.lon + 180) / 360) * W;
-      const cy = ((90 - st.lat) / 180) * H;
-      drawHurricane(ctx, cx, cy, st.r);
-    });
     // 整体柔化，让云和风暴更自然
     const tmp = document.createElement("canvas");
     tmp.width = W;
