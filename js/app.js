@@ -1127,13 +1127,15 @@
 
   function makeEventPin(color) {
     const g = new THREE.Group();
+    const h = MOON_RADIUS * 0.6;
+    const r = MOON_RADIUS * 0.2;
     const pin = new THREE.Mesh(
-      new THREE.ConeGeometry(0.05, 0.16, 8),
+      new THREE.ConeGeometry(r, h, 8),
       new THREE.MeshBasicMaterial({ color: color })
     );
-    pin.position.y = 0.08;
+    pin.position.y = h / 2;
     const base = new THREE.Mesh(
-      new THREE.SphereGeometry(0.032, 10, 8),
+      new THREE.SphereGeometry(r * 0.55, 10, 8),
       new THREE.MeshBasicMaterial({ color: color })
     );
     g.add(pin);
@@ -1366,7 +1368,7 @@
     let target;
     let dist;
     if (ev) {
-      target = eventWorldPos(ev);
+      target = ev.body === "moon" ? bodyWorldPos("moon") : eventWorldPos(ev);
       dist = ev.body === "moon" ? 1.6 : 4.5;
     } else if (key === "moon") {
       target = bodyWorldPos("moon");
@@ -1415,7 +1417,7 @@
     });
     showEventCard(ev);
     if (fly) flyTo(key);
-    followKey = key;
+    followKey = ev.body === "moon" ? "moon" : key;
     updateFollowBadge();
     if (window.innerWidth <= 768) closeSidebar();
   }
