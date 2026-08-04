@@ -513,16 +513,17 @@
       const n1 = nz.fbm(Math.cos(a2) * r * 4.5 + st.sx, Math.sin(a2) * r * 4.5 + st.sy, 4);
       const n2 = nz.fbm(Math.cos(a2) * r * 10 + st.sx * 2, Math.sin(a2) * r * 10 + st.sy * 2, 3);
       const band = n1 * 0.65 + n2 * 0.35;
-      let a;
-      if (r < 0.17) {
-        a = 0;                        // 清晰的风眼
-      } else if (r < 0.34) {
-        a = 0.95;                     // 明亮的眼墙
-      } else {
-        a = Math.max(0, Math.min(1, (band - 0.45) * 3.2));
-        a *= Math.max(0, (1.3 - r) / 0.98);   // 外围逐渐消散
-      }
-      return a;
+      // 眼墙：以 r≈0.26 为中心的高斯亮环，向内外都平滑衰减（风眼保持清晰）
+      const dWall = (r - 0.26) / 0.1;
+      const sEye = Math.max(0, Math.min(1, (r - 0.16) / 0.08));
+      const wall = 0.85 * Math.exp(-dWall * dWall) * sEye * sEye * (3 - 2 * sEye);
+      // 螺旋云带：从眼墙外平滑接力，外缘逐渐淡出，和普通云层自然衔接
+      const bi = Math.max(0, Math.min(1, (r - 0.3) / 0.25));
+      const bo = Math.max(0, Math.min(1, (1.35 - r) / 0.45));
+      const bs = Math.max(0, Math.min(1, (band - 0.38) / 0.3));
+      const bandA = bs * bs * (3 - 2 * bs) *
+        bi * bi * (3 - 2 * bi) * bo * bo * (3 - 2 * bo);
+      return Math.max(wall, bandA);
     };
   }
 
@@ -535,9 +536,9 @@
     const ctx = canvas.getContext("2d");
     const nz = makeNoise2D(mulberry32(4242));
     const storms = [
-      { lat: 18, lon: -62, rDeg: 10, sx: 3.7, sy: 11.2 },
-      { lat: 22, lon: 138, rDeg: 9, sx: 21.4, sy: 5.8 },
-      { lat: -12, lon: 88, rDeg: 8, sx: 8.1, sy: 17.3 }
+      { lat: 18, lon: -62, rDeg: 17, sx: 3.7, sy: 11.2 },
+      { lat: 22, lon: 138, rDeg: 15, sx: 21.4, sy: 5.8 },
+      { lat: -12, lon: 88, rDeg: 13, sx: 8.1, sy: 17.3 }
     ];
     const stormAlphas = storms.map(function (st) {
       return makeStormAlpha(nz, st, W, H);
@@ -568,7 +569,7 @@
     tmp.width = W;
     tmp.height = H;
     const tctx = tmp.getContext("2d");
-    tctx.filter = "blur(2.5px)";
+    tctx.filter = "blur(3px)";
     tctx.drawImage(canvas, 0, 0);
     ctx.clearRect(0, 0, W, H);
     ctx.drawImage(tmp, 0, 0);
