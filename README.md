@@ -9,6 +9,10 @@ An interactive 3D solar system built with Three.js, available in Simplified Chin
 
 项目仓库 · Repository：<https://github.com/oen1day/solar-system>
 
+## 界面预览 · Screenshot
+
+![动态太阳系模型 · Interactive Solar System](screenshot.png)
+
 ## 功能特性 · Features
 
 - 3D 太阳系：太阳、八大行星、月球、小行星带、柯伊伯带与星空 / 3D solar system: the Sun, eight planets, the Moon, the asteroid belt, the Kuiper belt, and a starfield
